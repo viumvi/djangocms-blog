@@ -224,26 +224,6 @@ class Post(KnockerModel, BlogMetaMixin):
         BlogConfig, null=True, verbose_name=_('app. config')
     )
 
-    translations = TranslatedFields(
-        title=models.CharField(_('title'), max_length=752),
-        slug=models.SlugField(_('slug'), max_length=752, blank=True,
-                              db_index=True, allow_unicode=True),
-        subtitle=models.CharField(verbose_name=_('subtitle'), max_length=767,
-                                  blank=True, default=''),
-        abstract=HTMLField(_('abstract'), blank=True, default='',
-                           configuration='BLOG_ABSTRACT_CKEDITOR'),
-        meta_description=models.TextField(verbose_name=_('post meta description'),
-                                          blank=True, default=''),
-        meta_keywords=models.TextField(verbose_name=_('post meta keywords'),
-                                       blank=True, default=''),
-        meta_title=models.CharField(verbose_name=_('post meta title'),
-                                    help_text=_('used in title tag and social sharing'),
-                                    max_length=2000,
-                                    blank=True, default=''),
-        post_text=HTMLField(_('text'), default='', blank=True,
-                            configuration='BLOG_POST_TEXT_CKEDITOR'),
-        meta={'unique_together': (('language_code', 'slug'),)}
-    )
     media = PlaceholderField('media', related_name='media')
     content = PlaceholderField('post_content', related_name='post_content')
     liveblog = PlaceholderField('live_blog', related_name='live_blog')
