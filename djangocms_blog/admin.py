@@ -135,38 +135,38 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         messages.add_message(
             request, messages.INFO,
             __('%(updates)d entry published.',
-                '%(updates)d entries published.', cnt1+cnt2) % {
+               '%(updates)d entries published.', cnt1+cnt2) % {
                 'updates':  cnt1+cnt2, })
 
     def make_unpublished(self, request, queryset):
         """ Bulk action to mark selected posts as UNpublished.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(publish=True)\
+        updates = queryset.filter(publish=True) \
             .update(publish=False)
         messages.add_message(
             request, messages.INFO,
             __('%(updates)d entry unpublished.',
-                '%(updates)d entries unpublished.', updates) % {
+               '%(updates)d entries unpublished.', updates) % {
                 'updates':  updates, })
 
     def enable_comments(self, request, queryset):
         """ Bulk action to enable comments for selected posts.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(enable_comments=False)\
+        updates = queryset.filter(enable_comments=False) \
             .update(enable_comments=True)
         messages.add_message(
             request, messages.INFO,
             __('Comments for %(updates)d entry enabled.',
-                'Comments for %(updates)d entries enabled', updates) % {
+               'Comments for %(updates)d entries enabled', updates) % {
                 'updates':  updates, })
 
     def disable_comments(self, request, queryset):
         """ Bulk action to disable comments for selected posts.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(enable_comments=True)\
+        updates = queryset.filter(enable_comments=True) \
             .update(enable_comments=False)
         messages.add_message(
             request, messages.INFO,
@@ -178,25 +178,25 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         """ Bulk action to enable comments for selected posts.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(enable_liveblog=False)\
+        updates = queryset.filter(enable_liveblog=False) \
             .update(enable_liveblog=True)
         messages.add_message(
             request, messages.INFO,
             __('Liveblog for %(updates)d entry enabled.',
-                'Liveblog for %(updates)d entries enabled.', updates) % {
+               'Liveblog for %(updates)d entries enabled.', updates) % {
                 'updates':  updates, })
 
     def disable_liveblog(self, request, queryset):
         """ Bulk action to disable comments for selected posts.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(enable_liveblog=True)\
+        updates = queryset.filter(enable_liveblog=True) \
             .update(enable_liveblog=False)
         messages.add_message(
             request, messages.INFO,
             __('Liveblog for %(updates)d entry enabled.',
                'Liveblog for %(updates)d entries enabled.') % {
-               'updates':  updates, })
+                'updates':  updates, })
 
     # Make bulk action menu entries localizable
     make_published.short_description = _("Publish selection")

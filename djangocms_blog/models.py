@@ -73,7 +73,7 @@ class BlogMetaMixin(ModelMeta):
 
 
 @python_2_unicode_compatible
-class BlogCategory(BlogMetaMixin, TranslatableModel):
+class BlogCategory(BlogMetaMixin):
     """
     Blog category
     """
@@ -121,6 +121,7 @@ class BlogCategory(BlogMetaMixin, TranslatableModel):
     }
 
     class Meta:
+        abstract = True
         verbose_name = _('blog category')
         verbose_name_plural = _('blog categories')
 
@@ -184,7 +185,7 @@ class BlogCategory(BlogMetaMixin, TranslatableModel):
 
 
 @python_2_unicode_compatible
-class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
+class Post(KnockerModel, BlogMetaMixin):
     """
     Blog post
     """
@@ -292,6 +293,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         verbose_name_plural = _('blog articles')
         ordering = ('-date_published', '-date_created')
         get_latest_by = 'date_published'
+        abstract = True
 
     def __str__(self):
         default = ugettext('Post (no translation)')
@@ -492,7 +494,7 @@ class BasePostPlugin(CMSPlugin):
             posts = posts.on_site(get_current_site(request))
         posts = posts.active_translations(language_code=language)
         if (published_only or not request or not getattr(request, 'toolbar', False) or
-                not request.toolbar.edit_mode_active):
+            not request.toolbar.edit_mode_active):
             posts = posts.published(current_site=self.current_site)
         return self.optimize(posts.all())
 
@@ -527,6 +529,9 @@ class LatestPostsPlugin(BasePostPlugin):
             posts = posts.filter(categories__in=list(self.categories.all()))
         return self.optimize(posts.distinct())[:self.latest_posts]
 
+    class Meta:
+        abstract = True
+
 
 @python_2_unicode_compatible
 class AuthorEntriesPlugin(BasePostPlugin):
@@ -559,11 +564,14 @@ class AuthorEntriesPlugin(BasePostPlugin):
             author.posts = qs[:self.latest_posts]
         return authors
 
+    class Meta:
+        abstract = True
+
 
 @python_2_unicode_compatible
 class GenericBlogPlugin(BasePostPlugin):
     class Meta:
-        abstract = False
+        abstract = True
 
     def __str__(self):
         return force_text(_('generic blog plugin'))

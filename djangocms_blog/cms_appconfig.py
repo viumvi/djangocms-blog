@@ -13,18 +13,14 @@ from parler.models import TranslatableModel, TranslatedFields
 from .settings import MENU_TYPE_COMPLETE, get_setting
 
 
-class BlogConfig(TranslatableModel, AppHookConfig):
+class BlogConfig(AppHookConfig):
     """
     Adds some translatable, per-app-instance fields.
     """
-    translations = TranslatedFields(
-        app_title=models.CharField(_('application title'), max_length=234),
-        object_name=models.CharField(
-            _('object name'), max_length=234, default=get_setting('DEFAULT_OBJECT_NAME')
-        ),
-    )
+
 
     class Meta:
+        abstract=True
         verbose_name = _('blog config')
         verbose_name_plural = _('blog configs')
 

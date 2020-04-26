@@ -33,7 +33,7 @@ class ConfigFormBase(object):
         return None
 
 
-class CategoryAdminForm(ConfigFormBase, TranslatableModelForm):
+class CategoryAdminForm(ConfigFormBase):
 
     def __init__(self, *args, **kwargs):
         self.base_fields['meta_description'].validators = [
@@ -92,7 +92,7 @@ class AuthorPostsForm(forms.ModelForm):
         ).distinct()
 
 
-class PostAdminFormBase(ConfigFormBase, TranslatableModelForm):
+class PostAdminFormBase(ConfigFormBase):
     """
     This provide common methods between the admin and wizard form
     """
