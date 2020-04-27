@@ -20,14 +20,16 @@ class ConfigFormBase(object):
     passed in the request
     """
 
+    app_config_model = BlogConfig
+
     @cached_property
     def app_config(self):
         if getattr(self.instance, 'app_config_id', None):
             return self.instance.app_config
         elif 'app_config' in self.initial:
-            return BlogConfig.objects.get(pk=self.initial['app_config'])
+            return self.app_config_model.objects.get(pk=self.initial['app_config'])
         elif self.data.get('app_config', None):
-            return BlogConfig.objects.get(pk=self.data['app_config'])
+            return self.app_config_model.objects.get(pk=self.data['app_config'])
         return None
 
 
@@ -56,9 +58,9 @@ class CategoryAdminForm(ConfigFormBase):
             if getattr(self.instance, 'app_config_id', None):
                 qs = qs.namespace(self.instance.app_config.namespace)
             elif 'app_config' in self.initial:
-                config = BlogConfig.objects.get(pk=self.initial['app_config'])
+                config = self.app_config_model.objects.get(pk=self.initial['app_config'])
             elif self.data.get('app_config', None):
-                config = BlogConfig.objects.get(pk=self.data['app_config'])
+                config = self.app_config_model.objects.get(pk=self.data['app_config'])
             if config:
                 qs = qs.namespace(config.namespace)
             self.fields['parent'].queryset = qs

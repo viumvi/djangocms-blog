@@ -5,7 +5,6 @@ from aldryn_apphooks_config.models import AppHookConfig
 from aldryn_apphooks_config.utils import setup_config
 from app_data import AppDataForm
 from django import forms
-from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from filer.models import ThumbnailOption
 from parler.models import TranslatableModel, TranslatedFields
@@ -13,7 +12,7 @@ from parler.models import TranslatableModel, TranslatedFields
 from .settings import MENU_TYPE_COMPLETE, get_setting
 
 
-class BlogConfig(AppHookConfig):
+class BlogConfigBase(AppHookConfig):
     """
     Adds some translatable, per-app-instance fields.
     """
@@ -24,6 +23,10 @@ class BlogConfig(AppHookConfig):
 
     def get_app_title(self):
         return getattr(self, 'app_title', _('untitled'))
+
+
+class BlogConfig(TranslatableModel, BlogConfigBase):
+    pass
 
 
 class BlogConfigForm(AppDataForm):

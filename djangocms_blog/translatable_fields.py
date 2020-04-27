@@ -32,3 +32,10 @@ post_translations = TranslatedFields(
                         configuration='BLOG_POST_TEXT_CKEDITOR'),
     meta={'unique_together': (('language_code', 'slug'),)}
 )
+
+blog_config_translations = TranslatedFields(
+    app_title=models.CharField(_('application title'), max_length=234),
+    object_name=models.CharField(
+        _('object name'), max_length=234, default=get_setting('DEFAULT_OBJECT_NAME')
+    ),
+)
