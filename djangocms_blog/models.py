@@ -73,7 +73,7 @@ class BlogMetaMixin(ModelMeta):
 
 
 @python_2_unicode_compatible
-class BlogCategory(BlogMetaMixin):
+class BlogCategoryAbstract(BlogMetaMixin):
     """
     Blog category
     """
@@ -85,15 +85,6 @@ class BlogCategory(BlogMetaMixin):
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
         BlogConfig, null=True, verbose_name=_('app. config')
-    )
-
-    translations = TranslatedFields(
-        name=models.CharField(_('name'), max_length=752),
-        slug=models.SlugField(_('slug'), max_length=752, blank=True, db_index=True),
-        meta_description=models.TextField(
-            verbose_name=_('category meta description'), blank=True, default=''
-        ),
-        meta={'unique_together': (('language_code', 'slug'),)}
     )
 
     objects = AppHookConfigTranslatableManager()
@@ -184,8 +175,14 @@ class BlogCategory(BlogMetaMixin):
         return escape(strip_tags(description)).strip()
 
 
+class BlogCategory(BlogCategoryAbstract):
+
+    class Meta:
+        abstract = False
+
+
 @python_2_unicode_compatible
-class Post(KnockerModel, BlogMetaMixin):
+class PostAbstract(KnockerModel, BlogMetaMixin):
     """
     Blog post
     """
@@ -437,7 +434,15 @@ class Post(KnockerModel, BlogMetaMixin):
         )
 
 
+class Post(PostAbstract):
+
+    class Meta:
+        abstract = False
+
+
 class BasePostPlugin(CMSPlugin):
+    post_model = Post
+
     app_config = AppHookConfigField(
         BlogConfig, null=True, verbose_name=_('app. config'), blank=True
     )
@@ -467,7 +472,7 @@ class BasePostPlugin(CMSPlugin):
 
     def post_queryset(self, request=None, published_only=True):
         language = get_language()
-        posts = Post.objects
+        posts = self.post_model.objects
         if self.app_config:
             posts = posts.namespace(self.app_config.namespace)
         if self.current_site:
@@ -480,7 +485,7 @@ class BasePostPlugin(CMSPlugin):
 
 
 @python_2_unicode_compatible
-class LatestPostsPlugin(BasePostPlugin):
+class LatestPostsPluginAbstract(BasePostPlugin):
     latest_posts = models.IntegerField(_('articles'), default=get_setting('LATEST_POSTS'),
                                        help_text=_('The number of latests '
                                                    'articles to be displayed.'))
@@ -511,6 +516,12 @@ class LatestPostsPlugin(BasePostPlugin):
 
     class Meta:
         abstract = True
+
+
+class LatestPostsPlugin(LatestPostsPluginAbstract):
+
+    class Meta:
+        abstract = False
 
 
 @python_2_unicode_compatible
@@ -549,12 +560,18 @@ class AuthorEntriesPlugin(BasePostPlugin):
 
 
 @python_2_unicode_compatible
-class GenericBlogPlugin(BasePostPlugin):
+class GenericBlogPluginAbstract(BasePostPlugin):
     class Meta:
         abstract = True
 
     def __str__(self):
         return force_text(_('generic blog plugin'))
+
+
+class GenericBlogPlugin(GenericBlogPluginAbstract):
+
+    class Meta:
+        abstract = False
 
 
 @receiver(pre_delete, sender=Post)

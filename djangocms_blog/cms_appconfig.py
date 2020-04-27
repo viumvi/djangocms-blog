@@ -18,9 +18,7 @@ class BlogConfig(AppHookConfig):
     Adds some translatable, per-app-instance fields.
     """
 
-
     class Meta:
-        abstract=True
         verbose_name = _('blog config')
         verbose_name_plural = _('blog configs')
 

@@ -4,7 +4,6 @@ from __future__ import absolute_import, print_function, unicode_literals
 import os.path
 
 from cms.plugin_base import CMSPluginBase
-from cms.plugin_pool import plugin_pool
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import models
 
@@ -27,7 +26,7 @@ class BlogPlugin(CMSPluginBase):
                                 self.base_render_template)
 
 
-class BlogLatestEntriesPlugin(BlogPlugin):
+class BlogLatestEntriesPluginAbstract(BlogPlugin):
     """
     Non cached plugin which returns the latest posts taking into account the
       user / toolbar state
@@ -42,10 +41,19 @@ class BlogLatestEntriesPlugin(BlogPlugin):
     base_render_template = 'latest_entries.html'
 
     def render(self, context, instance, placeholder):
-        context = super(BlogLatestEntriesPlugin, self).render(context, instance, placeholder)
+        context = super(BlogLatestEntriesPluginAbstract, self).render(context, instance, placeholder)
         context['posts_list'] = instance.get_posts(context['request'], published_only=False)
         context['TRUNCWORDS_COUNT'] = get_setting('POSTS_LIST_TRUNCWORDS_COUNT')
         return context
+
+    class Meta:
+        abstract = True
+
+
+class BlogLatestEntriesPlugin(BlogLatestEntriesPluginAbstract):
+
+    class Meta:
+        abstract = False
 
 
 class BlogLatestEntriesPluginCached(BlogPlugin):
@@ -105,16 +113,17 @@ class BlogTagsPlugin(BlogPlugin):
         return context
 
 
-class BlogCategoryPlugin(BlogPlugin):
+class BlogCategoryPluginAbstract(BlogPlugin):
     module = get_setting('PLUGIN_MODULE_NAME')
     name = get_setting('CATEGORY_PLUGIN_NAME')
     model = GenericBlogPlugin
     base_render_template = 'categories.html'
     exclude = ['template_folder'] if len(get_setting('PLUGIN_TEMPLATE_FOLDERS')) >= 1 else []
+    qs_model = BlogCategory
 
     def render(self, context, instance, placeholder):
         context = super(BlogCategoryPlugin, self).render(context, instance, placeholder)
-        qs = BlogCategory.objects.active_translations()
+        qs = self.qs_model.objects.active_translations()
         if instance.app_config:
             qs = qs.namespace(instance.app_config.namespace)
         if instance.current_site:
@@ -127,6 +136,15 @@ class BlogCategoryPlugin(BlogPlugin):
             categories = qs.filter(blog_posts__isnull=False).distinct()
         context['categories'] = categories
         return context
+
+    class Meta:
+        abstract = True
+
+
+class BlogCategoryPlugin(BlogCategoryPluginAbstract):
+
+    class Meta:
+        abstract = False
 
 
 class BlogArchivePlugin(BlogPlugin):

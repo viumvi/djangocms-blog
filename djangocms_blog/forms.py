@@ -12,8 +12,6 @@ from taggit_autosuggest.widgets import TagAutoSuggest
 from .models import BlogCategory, BlogConfig, Post
 from .settings import PERMALINK_TYPE_CATEGORY, get_setting
 
-User = get_user_model()
-
 
 class ConfigFormBase(object):
     """
@@ -87,7 +85,7 @@ class AuthorPostsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AuthorPostsForm, self).__init__(*args, **kwargs)
         # apply distinct due to django issue #11707
-        self.fields['authors'].queryset = User.objects.filter(
+        self.fields['authors'].queryset = get_user_model().objects.filter(
             djangocms_blog_post_author__publish=True
         ).distinct()
 
@@ -97,13 +95,15 @@ class PostAdminFormBase(ConfigFormBase):
     This provide common methods between the admin and wizard form
     """
 
+    blog_category_model = BlogCategory
+
     class Meta:
         model = Post
         fields = '__all__'
 
     @cached_property
     def available_categories(self):
-        qs = BlogCategory.objects
+        qs = self.blog_category_model.objects
         if self.app_config:
             return qs.namespace(self.app_config.namespace).active_translations()
         return qs
