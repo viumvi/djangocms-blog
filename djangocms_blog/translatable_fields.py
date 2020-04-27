@@ -3,6 +3,8 @@ from django.utils.translation import ugettext_lazy as _
 from djangocms_text_ckeditor.fields import HTMLField
 from parler.models import TranslatedFields
 
+from .settings import get_setting
+
 blog_category_translations = TranslatedFields(
     name=models.CharField(_('name'), max_length=752),
     slug=models.SlugField(_('slug'), max_length=752, blank=True, db_index=True),
