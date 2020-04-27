@@ -18,9 +18,8 @@ from django.utils.six import callable, text_type
 from django.utils.translation import get_language_from_request, ugettext_lazy as _, ungettext as __
 from parler.admin import TranslatableAdmin
 
-from .cms_appconfig import BlogConfig
 from .forms import CategoryAdminForm, PostAdminForm
-from .models import BlogCategory, Post
+from .models import Post
 from .settings import get_setting
 
 
@@ -69,6 +68,7 @@ class BlogCategoryAdmin(ModelAppHookConfig, TranslatableAdmin):
 class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
                 ModelAppHookConfig, TranslatableAdmin):
     form = PostAdminForm
+    post_model = Post
     list_display = [
         'title', 'author', 'date_published', 'app_config', 'all_languages_column',
         'date_published_end'
@@ -254,7 +254,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         """
         language = get_language_from_request(request, check_path=True)
         try:
-            post = Post.objects.get(pk=int(pk))
+            post = self.post_model.objects.get(pk=int(pk))
             post.publish = True
             post.save()
             return HttpResponseRedirect(post.get_absolute_url(language))
@@ -335,7 +335,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         if apps.is_installed('djangocms_blog.liveblog'):
             fsets[2][1]['fields'][2].append('enable_liveblog')
         filter_function = get_setting('ADMIN_POST_FIELDSET_FILTER')
-        if related and Post.objects.namespace(config.namespace).active_translations().exists():
+        if related and self.post_model.objects.namespace(config.namespace).active_translations().exists():
             fsets[1][1]['fields'][0].append('related')
         if callable(filter_function):
             fsets = filter_function(fsets, request, obj=obj)
@@ -458,8 +458,3 @@ class BlogConfigAdmin(BaseAppHookConfig, TranslatableAdmin):
             from menus.menu_pool import menu_pool
             menu_pool.clear(all=True)
         return super(BlogConfigAdmin, self).save_model(request, obj, form, change)
-
-
-admin.site.register(BlogCategory, BlogCategoryAdmin)
-admin.site.register(Post, PostAdmin)
-admin.site.register(BlogConfig, BlogConfigAdmin)
