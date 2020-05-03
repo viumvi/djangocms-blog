@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxLengthValidator
 from django.utils.functional import cached_property
-from parler.forms import TranslatableModelForm
 from taggit_autosuggest.widgets import TagAutoSuggest
 
-from .models import BlogCategory, BlogConfig, Post
-from .settings import PERMALINK_TYPE_CATEGORY, get_setting
+from .cms_appconfig import BlogConfig
+from .models import BlogCategory
+from .models import Post
+from .settings import PERMALINK_TYPE_CATEGORY
+from .settings import get_setting
 
 
 class ConfigFormBase(object):

@@ -90,7 +90,7 @@ class BlogCategoryAbstract(BlogMetaMixin):
     module_name = 'djangocms_blog'
 
     parent = models.ForeignKey(
-        get_model(module_name, 'BlogCategory'), verbose_name=_('parent'),
+        'self', verbose_name=_('parent'),
         null=True,blank=True, related_name='children',
         on_delete=models.CASCADE
     )
@@ -257,7 +257,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     objects = GenericDateTaggedManager()
     tags = TaggableManager(blank=True, related_name='djangocms_blog_tags')
 
-    related = SortedManyToManyField(get_model(module_name, 'Post'),
+    related = SortedManyToManyField('self',
                                     verbose_name=_('Related Posts'),
                                     blank=True,
                                     symmetrical=False)
