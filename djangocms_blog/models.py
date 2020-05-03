@@ -1,36 +1,46 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import hashlib
 
 from aldryn_apphooks_config.fields import AppHookConfigField
 from aldryn_apphooks_config.managers.parler import AppHookConfigTranslatableManager
-from cms.models import CMSPlugin, PlaceholderField
+from cms.models import CMSPlugin
+from cms.models import PlaceholderField
 from django.conf import settings as dj_settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
 from django.db import models
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save
+from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_bytes, force_text, python_2_unicode_compatible
+from django.utils.encoding import force_bytes
+from django.utils.encoding import force_text
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import cached_property
-from django.utils.html import escape, strip_tags
-from django.utils.translation import get_language, ugettext, ugettext_lazy as _
+from django.utils.html import escape
+from django.utils.html import strip_tags
+from django.utils.translation import get_language
+from django.utils.translation import ugettext
+from django.utils.translation import ugettext_lazy as _
 from djangocms_text_ckeditor.fields import HTMLField
 from filer.fields.image import FilerImageField
 from filer.models import ThumbnailOption
 from meta.models import ModelMeta
-from parler.models import TranslatableModel, TranslatedFields
+from parler.models import TranslatableModel
+from parler.models import TranslatedFields
 from parler.utils.context import switch_language
 from sortedm2m.fields import SortedManyToManyField
 from taggit_autosuggest.managers import TaggableManager
 
-from .cms_appconfig import BlogConfig
 from .fields import slugify
 from .managers import GenericDateTaggedManager
+from .settings import get_model
 from .settings import get_setting
 
 BLOG_CURRENT_POST_IDENTIFIER = get_setting('CURRENT_POST_IDENTIFIER')
@@ -78,13 +88,14 @@ class BlogCategoryAbstract(BlogMetaMixin):
     Blog category
     """
     parent = models.ForeignKey(
-        'self', verbose_name=_('parent'), null=True, blank=True, related_name='children',
+        get_model('BlogCategory'), verbose_name=_('parent'),
+        null=True,blank=True, related_name='children',
         on_delete=models.CASCADE
     )
     date_created = models.DateTimeField(_('created at'), auto_now_add=True)
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
-        BlogConfig, null=True, verbose_name=_('app. config')
+        get_model('BlogConfig'), null=True, verbose_name=_('app. config')
     )
 
     objects = AppHookConfigTranslatableManager()
@@ -175,12 +186,6 @@ class BlogCategoryAbstract(BlogMetaMixin):
         return escape(strip_tags(description)).strip()
 
 
-class BlogCategory(BlogCategoryAbstract):
-
-    class Meta:
-        abstract = False
-
-
 blog_category_translations = TranslatedFields(
     name=models.CharField(_('name'), max_length=752),
     slug=models.SlugField(_('slug'), max_length=752, blank=True, db_index=True),
@@ -189,6 +194,14 @@ blog_category_translations = TranslatedFields(
     ),
     meta={'unique_together': (('language_code', 'slug'),)}
 )
+
+
+class BlogCategory(BlogCategoryAbstract, TranslatableModel):
+
+    translations = blog_category_translations
+
+    class Meta:
+        abstract = False
 
 
 @python_2_unicode_compatible
@@ -206,7 +219,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     date_published_end = models.DateTimeField(_('published until'), null=True, blank=True)
     date_featured = models.DateTimeField(_('featured date'), null=True, blank=True)
     publish = models.BooleanField(_('publish'), default=False)
-    categories = models.ManyToManyField('djangocms_blog.BlogCategory', verbose_name=_('category'),
+    categories = models.ManyToManyField(get_model('BlogCategory'), verbose_name=_('category'),
                                         related_name='blog_posts', blank=True)
     main_image = FilerImageField(verbose_name=_('main image'), blank=True, null=True,
                                  on_delete=models.SET_NULL,
@@ -228,7 +241,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
                                                'If none is set it will be '
                                                'visible in all the configured sites.'))
     app_config = AppHookConfigField(
-        BlogConfig, null=True, verbose_name=_('app. config')
+        get_model('BlogConfig'), null=True, verbose_name=_('app. config')
     )
 
     media = PlaceholderField('media', related_name='media')
@@ -240,7 +253,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     objects = GenericDateTaggedManager()
     tags = TaggableManager(blank=True, related_name='djangocms_blog_tags')
 
-    related = SortedManyToManyField('self',
+    related = SortedManyToManyField(get_model('Post'),
                                     verbose_name=_('Related Posts'),
                                     blank=True,
                                     symmetrical=False)
@@ -444,12 +457,6 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
         )
 
 
-class Post(PostAbstract):
-
-    class Meta:
-        abstract = False
-
-
 post_translations = TranslatedFields(
     title=models.CharField(_('title'), max_length=752),
     slug=models.SlugField(_('slug'), max_length=752, blank=True,
@@ -472,11 +479,18 @@ post_translations = TranslatedFields(
 )
 
 
+class Post(PostAbstract, TranslatableModel):
+
+    translations = post_translations
+
+    class Meta:
+        abstract = False
+
+
 class BasePostPlugin(CMSPlugin):
-    post_model = Post
 
     app_config = AppHookConfigField(
-        BlogConfig, null=True, verbose_name=_('app. config'), blank=True
+        get_model('BlogConfig'), null=True, verbose_name=_('app. config'), blank=True
     )
     current_site = models.BooleanField(
         _('current site'), default=True, help_text=_('Select items from the current site only')
@@ -504,7 +518,8 @@ class BasePostPlugin(CMSPlugin):
 
     def post_queryset(self, request=None, published_only=True):
         language = get_language()
-        posts = self.post_model.objects
+        post_model = get_model('Post')
+        posts = post_model.objects
         if self.app_config:
             posts = posts.namespace(self.app_config.namespace)
         if self.current_site:
@@ -524,7 +539,7 @@ class LatestPostsPluginAbstract(BasePostPlugin):
     tags = TaggableManager(_('filter by tag'), blank=True,
                            help_text=_('Show only the blog articles tagged with chosen tags.'),
                            related_name='djangocms_blog_latest_post')
-    categories = models.ManyToManyField('djangocms_blog.BlogCategory', blank=True,
+    categories = models.ManyToManyField(get_model('BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
                                         help_text=_('Show only the blog articles tagged '
                                                     'with chosen categories.'))
