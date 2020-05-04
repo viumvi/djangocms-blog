@@ -74,25 +74,25 @@ class PostWizard(Wizard):
     pass
 
 
-for config in BlogConfig.objects.all().order_by('namespace'):
-    seed = slugify('{0}.{1}'.format(config.app_title, config.namespace))
-    new_wizard = type(str(seed), (PostWizard,), {})
-    new_form = type(str('{0}Form').format(seed), (PostWizardForm,), {
-        'default_appconfig': config.pk
-    })
-    post_wizard = new_wizard(
-        title=_('New {0}').format(config.object_name),
-        weight=200,
-        form=new_form,
-        model=Post,
-        description=_('Create a new {0} in {1}').format(config.object_name, config.app_title),
-    )
-    try:
-        wizard_pool.register(post_wizard)
-    except AlreadyRegisteredException:  # pragma: no cover
-        if settings.DEBUG:
-            raise
-        else:
-            warnings.warn('Wizard {0} cannot be registered. Please make sure that '
-                          'BlogConfig.namespace {1} and BlogConfig.app_title {2} are'
-                          'unique together'.format(seed, config.namespace, config.app_title))
+# for config in BlogConfig.objects.all().order_by('namespace'):
+#     seed = slugify('{0}.{1}'.format(config.app_title, config.namespace))
+#     new_wizard = type(str(seed), (PostWizard,), {})
+#     new_form = type(str('{0}Form').format(seed), (PostWizardForm,), {
+#         'default_appconfig': config.pk
+#     })
+#     post_wizard = new_wizard(
+#         title=_('New {0}').format(config.object_name),
+#         weight=200,
+#         form=new_form,
+#         model=Post,
+#         description=_('Create a new {0} in {1}').format(config.object_name, config.app_title),
+#     )
+#     try:
+#         wizard_pool.register(post_wizard)
+#     except AlreadyRegisteredException:  # pragma: no cover
+#         if settings.DEBUG:
+#             raise
+#         else:
+#             warnings.warn('Wizard {0} cannot be registered. Please make sure that '
+#                           'BlogConfig.namespace {1} and BlogConfig.app_title {2} are'
+#                           'unique together'.format(seed, config.namespace, config.app_title))

@@ -18,6 +18,7 @@ from django.utils.six import callable, text_type
 from django.utils.translation import get_language_from_request, ugettext_lazy as _, ungettext as __
 from parler.admin import TranslatableAdmin
 
+from .cms_appconfig import BlogConfig
 from .forms import CategoryAdminForm, PostAdminForm
 from .models import Post
 from .settings import get_setting
@@ -458,3 +459,5 @@ class BlogConfigAdmin(BaseAppHookConfig, TranslatableAdmin):
             from menus.menu_pool import menu_pool
             menu_pool.clear(all=True)
         return super(BlogConfigAdmin, self).save_model(request, obj, form, change)
+
+admin.site.register(BlogConfig, BlogConfigAdmin)
