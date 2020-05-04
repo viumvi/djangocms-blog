@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 
+from aldryn_apphooks_config.models import AppHookConfig
+
 MENU_TYPE_COMPLETE = 'complete'
 MENU_TYPE_CATEGORIES = 'categories'
 MENU_TYPE_POSTS = 'posts'
@@ -168,6 +170,8 @@ def get_setting(name):
 
 def get_model(app_label: str, model_name: str):
     from django.conf import settings
+    import importlib
+
     if (
         hasattr(settings, 'DJANGOCMS_BLOG_BASED_APPS') and
         app_label in settings.DJANGOCMS_BLOG_BASED_APPS.keys()
@@ -175,8 +179,8 @@ def get_model(app_label: str, model_name: str):
         models_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['models']
         cms_appconfig_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['cms_appconfig']
 
-        models = __import__('models', fromlist=[models_path])
-        cms_appconfig = __import__('cms_appconfig', fromlist=[cms_appconfig_path])
+        models = importlib.import_module(models_path+'models')
+        cms_appconfig = importlib.import_module(cms_appconfig_path+'cms_appconfig')
 
         # ToDo: import import
 
@@ -192,5 +196,30 @@ def get_model(app_label: str, model_name: str):
         return getattr(models, model_name)
     elif hasattr(cms_appconfig, model_name):
         return getattr(cms_appconfig, model_name)
+
+    raise ImportError("Can't find the specified model")
+
+
+def get_app_hook(app_label):
+    from django.conf import settings
+    import importlib
+
+    if (
+        hasattr(settings, 'DJANGOCMS_BLOG_BASED_APPS') and
+        app_label in settings.DJANGOCMS_BLOG_BASED_APPS.keys()
+    ):
+        cms_appconfig_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['cms_appconfig']
+
+        cms_appconfig = importlib.import_module(cms_appconfig_path+'cms_appconfig')
+
+        for clas in cms_appconfig.__dict__.items():
+            if issubclass(clas, AppHookConfig):
+                return getattr(cms_appconfig, clas)
+
+    from . import cms_appconfig
+
+    for clas in cms_appconfig.__dict__.items():
+        if issubclass(clas, AppHookConfig):
+            return getattr(cms_appconfig, clas)
 
     raise ImportError("Can't find the specified model")
