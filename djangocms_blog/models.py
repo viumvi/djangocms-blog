@@ -187,18 +187,19 @@ class BlogCategoryAbstract(BlogMetaMixin):
         return escape(strip_tags(description)).strip()
 
 
-blog_category_translations = TranslatedFields(
-    name=models.CharField(_('name'), max_length=752),
-    slug=models.SlugField(_('slug'), max_length=752, blank=True, db_index=True),
-    meta_description=models.TextField(
-        verbose_name=_('category meta description'), blank=True, default=''
-    ),
-    meta={'unique_together': (('language_code', 'slug'),)}
-)
+def get_blog_category_translations():
+    return TranslatedFields(
+        name=models.CharField(_('name'), max_length=752),
+        slug=models.SlugField(_('slug'), max_length=752, blank=True, db_index=True),
+        meta_description=models.TextField(
+            verbose_name=_('category meta description'), blank=True, default=''
+        ),
+        meta={'unique_together': (('language_code', 'slug'),)}
+    )
 
 
 class BlogCategory(BlogCategoryAbstract, TranslatableModel):
-    translations = blog_category_translations
+    translations = get_blog_category_translations()
 
     class Meta(BlogCategoryAbstract.Meta):
         abstract = False
@@ -471,30 +472,31 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
         )
 
 
-post_translations = TranslatedFields(
-    title=models.CharField(_('title'), max_length=752),
-    slug=models.SlugField(_('slug'), max_length=752, blank=True,
-                          db_index=True, allow_unicode=True),
-    subtitle=models.CharField(verbose_name=_('subtitle'), max_length=767,
-                              blank=True, default=''),
-    abstract=HTMLField(_('abstract'), blank=True, default='',
-                       configuration='BLOG_ABSTRACT_CKEDITOR'),
-    meta_description=models.TextField(verbose_name=_('post meta description'),
-                                      blank=True, default=''),
-    meta_keywords=models.TextField(verbose_name=_('post meta keywords'),
-                                   blank=True, default=''),
-    meta_title=models.CharField(verbose_name=_('post meta title'),
-                                help_text=_('used in title tag and social sharing'),
-                                max_length=2000,
-                                blank=True, default=''),
-    post_text=HTMLField(_('text'), default='', blank=True,
-                        configuration='BLOG_POST_TEXT_CKEDITOR'),
-    meta={'unique_together': (('language_code', 'slug'),)}
-)
+def get_blog_post_translations():
+    return TranslatedFields(
+        title=models.CharField(_('title'), max_length=752),
+        slug=models.SlugField(_('slug'), max_length=752, blank=True,
+                              db_index=True, allow_unicode=True),
+        subtitle=models.CharField(verbose_name=_('subtitle'), max_length=767,
+                                  blank=True, default=''),
+        abstract=HTMLField(_('abstract'), blank=True, default='',
+                           configuration='BLOG_ABSTRACT_CKEDITOR'),
+        meta_description=models.TextField(verbose_name=_('post meta description'),
+                                          blank=True, default=''),
+        meta_keywords=models.TextField(verbose_name=_('post meta keywords'),
+                                       blank=True, default=''),
+        meta_title=models.CharField(verbose_name=_('post meta title'),
+                                    help_text=_('used in title tag and social sharing'),
+                                    max_length=2000,
+                                    blank=True, default=''),
+        post_text=HTMLField(_('text'), default='', blank=True,
+                            configuration='BLOG_POST_TEXT_CKEDITOR'),
+        meta={'unique_together': (('language_code', 'slug'),)}
+    )
 
 
 class Post(PostAbstract, TranslatableModel):
-    translations = post_translations
+    translations = get_blog_post_translations()
 
     class Meta(PostAbstract.Meta):
         abstract = False
