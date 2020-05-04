@@ -89,14 +89,14 @@ class BlogCategoryAbstract(BlogMetaMixin):
 
     parent = models.ForeignKey(
         'self', verbose_name=_('parent'),
-        null=True, blank=True, related_name=f'{app_label}s_children',
+        null=True, blank=True, related_name='%(app_label)s_children',
         on_delete=models.CASCADE
     )
     date_created = models.DateTimeField(_('created at'), auto_now_add=True)
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
         get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'),
-        related_name=f'{app_label}s_app_config',
+        related_name='%(app_label)s_app_config',
     )
 
     objects = AppHookConfigTranslatableManager()
@@ -213,7 +213,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
 
     author = models.ForeignKey(dj_settings.AUTH_USER_MODEL,
                                verbose_name=_('author'), null=True, blank=True,
-                               related_name=f'{app_label}s_post_author',
+                               related_name='%(app_label)s_post_author',
                                on_delete=models.PROTECT)
 
     date_created = models.DateTimeField(_('created'), auto_now_add=True)
@@ -224,19 +224,19 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     publish = models.BooleanField(_('publish'), default=False)
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'),
                                         verbose_name=_('category'),
-                                        related_name=f'{app_label}_blog_posts',
+                                        related_name='%(app_label)s_blog_posts',
                                         blank=True)
     main_image = FilerImageField(verbose_name=_('main image'), blank=True, null=True,
                                  on_delete=models.SET_NULL,
-                                 related_name=f'{app_label}_post_image')
+                                 related_name='%(app_label)s_post_image')
     main_image_thumbnail = models.ForeignKey(thumbnail_model,
                                              verbose_name=_('main image thumbnail'),
-                                             related_name=f'{app_label}_post_thumbnail',
+                                             related_name='%(app_label)s_post_thumbnail',
                                              on_delete=models.SET_NULL,
                                              blank=True, null=True)
     main_image_full = models.ForeignKey(thumbnail_model,
                                         verbose_name=_('main image full'),
-                                        related_name=f'{app_label}_post_full',
+                                        related_name='%(app_label)s_post_full',
                                         on_delete=models.SET_NULL,
                                         blank=True, null=True)
     enable_comments = models.BooleanField(verbose_name=_('enable comments on post'),
@@ -248,28 +248,28 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
             'If none is set it will be '
             'visible in all the configured sites.'
         ),
-        related_name=f'{app_label}_post_thumbnail',
+        related_name='%(app_label)s_post_thumbnail',
     )
     app_config = AppHookConfigField(
         get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'),
-        related_name=f'{app_label}_app_config',
+        related_name='%(app_label)s_app_config',
     )
 
-    media = PlaceholderField('media', related_name=f'{app_label}_media')
-    content = PlaceholderField('post_content', related_name=f'{app_label}_post_content')
-    liveblog = PlaceholderField('live_blog', related_name=f'{app_label}_live_blog')
+    media = PlaceholderField('media', related_name='%(app_label)s_media')
+    content = PlaceholderField('post_content', related_name='%(app_label)s_post_content')
+    liveblog = PlaceholderField('live_blog', related_name='%(app_label)s_live_blog')
     enable_liveblog = models.BooleanField(verbose_name=_('enable liveblog on post'),
                                           default=False)
 
     objects = GenericDateTaggedManager()
-    tags = TaggableManager(blank=True, related_name=f'{app_label}_tags')
+    tags = TaggableManager(blank=True, related_name='%(app_label)s_tags')
 
     related = SortedManyToManyField(
         'self',
         verbose_name=_('Related Posts'),
         blank=True,
         symmetrical=False,
-        related_name=f'{app_label}_related'
+        related_name='%(app_label)s_related'
     )
 
     _metadata = {
