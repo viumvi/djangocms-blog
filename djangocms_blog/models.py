@@ -501,10 +501,10 @@ class Post(PostAbstract, TranslatableModel):
 
 
 class BasePostPlugin(CMSPlugin):
-    app_label2 = 'djangocms_blog'
+    app_label = 'djangocms_blog'
 
     app_config = AppHookConfigField(
-        get_model(app_label2, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True,
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True,
         related_name='%(app_label)s_app_config'
     )
     current_site = models.BooleanField(
@@ -583,6 +583,7 @@ class LatestPostsPluginAbstract(BasePostPlugin):
 
 
 class LatestPostsPlugin(LatestPostsPluginAbstract):
+    app_label = 'djangocms_blog'
 
     class Meta(LatestPostsPluginAbstract.Meta):
         abstract = False
