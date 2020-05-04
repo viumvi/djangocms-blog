@@ -200,6 +200,8 @@ blog_category_translations = TranslatedFields(
 class BlogCategory(BlogCategoryAbstract, TranslatableModel):
     translations = blog_category_translations
 
+    class Meta(BlogCategoryAbstract.Meta):
+        abstract = False
 
 
 @python_2_unicode_compatible
@@ -494,6 +496,9 @@ post_translations = TranslatedFields(
 class Post(PostAbstract, TranslatableModel):
     translations = post_translations
 
+    class Meta(PostAbstract.Meta):
+        abstract = False
+
 
 class BasePostPlugin(CMSPlugin):
     app_label = 'djangocms_blog'
@@ -578,7 +583,9 @@ class LatestPostsPluginAbstract(BasePostPlugin):
 
 
 class LatestPostsPlugin(LatestPostsPluginAbstract):
-    pass
+
+    class Meta(LatestPostsPluginAbstract.Meta):
+        abstract = False
 
 
 @python_2_unicode_compatible
