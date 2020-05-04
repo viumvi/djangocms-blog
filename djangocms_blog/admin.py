@@ -460,4 +460,5 @@ class BlogConfigAdmin(BaseAppHookConfig, TranslatableAdmin):
             menu_pool.clear(all=True)
         return super(BlogConfigAdmin, self).save_model(request, obj, form, change)
 
+
 admin.site.register(BlogConfig, BlogConfigAdmin)

@@ -111,7 +111,7 @@ def get_setting(name):
         'BLOG_PERMALINK_URLS': getattr(settings, 'BLOG_PERMALINK_URLS', PERMALINKS_URLS),
         'BLOG_DEFAULT_OBJECT_NAME': getattr(settings, 'BLOG_DEFAULT_OBJECT_NAME', 'Article'),
 
-        'BLOG_AUTO_SETUP': getattr(settings, 'BLOG_AUTO_SETUP', True),
+        'BLOG_AUTO_SETUP': getattr(settings, 'BLOG_AUTO_SETUP', False),
         'BLOG_AUTO_HOME_TITLE': getattr(settings, 'BLOG_AUTO_HOME_TITLE', 'Home'),
         'BLOG_AUTO_BLOG_TITLE': getattr(settings, 'BLOG_AUTO_BLOG_TITLE', 'Blog'),
         'BLOG_AUTO_APP_TITLE': getattr(settings, 'BLOG_AUTO_APP_TITLE', 'Blog'),
