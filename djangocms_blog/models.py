@@ -47,11 +47,9 @@ BLOG_CURRENT_POST_IDENTIFIER = get_setting('CURRENT_POST_IDENTIFIER')
 BLOG_CURRENT_NAMESPACE = get_setting('CURRENT_NAMESPACE')
 BLOG_PLUGIN_TEMPLATE_FOLDERS = get_setting('PLUGIN_TEMPLATE_FOLDERS')
 
-
 thumbnail_model = '%s.%s' % (
     ThumbnailOption._meta.app_label, ThumbnailOption.__name__
 )
-
 
 try:
     from knocker.mixins import KnockerModel
@@ -91,13 +89,14 @@ class BlogCategoryAbstract(BlogMetaMixin):
 
     parent = models.ForeignKey(
         'self', verbose_name=_('parent'),
-        null=True,blank=True, related_name='children',
+        null=True, blank=True, related_name=f'{app_label}s_children',
         on_delete=models.CASCADE
     )
     date_created = models.DateTimeField(_('created at'), auto_now_add=True)
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
-        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config')
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'),
+        related_name=f'{app_label}s_app_config',
     )
 
     objects = AppHookConfigTranslatableManager()
@@ -199,11 +198,8 @@ blog_category_translations = TranslatedFields(
 
 
 class BlogCategory(BlogCategoryAbstract, TranslatableModel):
-
     translations = blog_category_translations
 
-    class Meta:
-        abstract = False
 
 
 @python_2_unicode_compatible
@@ -215,7 +211,8 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
 
     author = models.ForeignKey(dj_settings.AUTH_USER_MODEL,
                                verbose_name=_('author'), null=True, blank=True,
-                               related_name='djangocms_blog_post_author', on_delete=models.PROTECT)
+                               related_name=f'{app_label}s_post_author',
+                               on_delete=models.PROTECT)
 
     date_created = models.DateTimeField(_('created'), auto_now_add=True)
     date_modified = models.DateTimeField(_('last modified'), auto_now=True)
@@ -223,44 +220,55 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     date_published_end = models.DateTimeField(_('published until'), null=True, blank=True)
     date_featured = models.DateTimeField(_('featured date'), null=True, blank=True)
     publish = models.BooleanField(_('publish'), default=False)
-    categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), verbose_name=_('category'),
-                                        related_name='blog_posts', blank=True)
+    categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'),
+                                        verbose_name=_('category'),
+                                        related_name=f'{app_label}_blog_posts',
+                                        blank=True)
     main_image = FilerImageField(verbose_name=_('main image'), blank=True, null=True,
                                  on_delete=models.SET_NULL,
-                                 related_name='djangocms_blog_post_image')
+                                 related_name=f'{app_label}_post_image')
     main_image_thumbnail = models.ForeignKey(thumbnail_model,
                                              verbose_name=_('main image thumbnail'),
-                                             related_name='djangocms_blog_post_thumbnail',
+                                             related_name=f'{app_label}_post_thumbnail',
                                              on_delete=models.SET_NULL,
                                              blank=True, null=True)
     main_image_full = models.ForeignKey(thumbnail_model,
                                         verbose_name=_('main image full'),
-                                        related_name='djangocms_blog_post_full',
+                                        related_name=f'{app_label}_post_full',
                                         on_delete=models.SET_NULL,
                                         blank=True, null=True)
     enable_comments = models.BooleanField(verbose_name=_('enable comments on post'),
                                           default=get_setting('ENABLE_COMMENTS'))
-    sites = models.ManyToManyField('sites.Site', verbose_name=_('Site(s)'), blank=True,
-                                   help_text=_('Select sites in which to show the post. '
-                                               'If none is set it will be '
-                                               'visible in all the configured sites.'))
+    sites = models.ManyToManyField(
+        'sites.Site', verbose_name=_('Site(s)'), blank=True,
+        help_text=_(
+            'Select sites in which to show the post. '
+            'If none is set it will be '
+            'visible in all the configured sites.'
+        ),
+        related_name=f'{app_label}_post_thumbnail',
+    )
     app_config = AppHookConfigField(
-        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config')
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'),
+        related_name=f'{app_label}_app_config',
     )
 
-    media = PlaceholderField('media', related_name='media')
-    content = PlaceholderField('post_content', related_name='post_content')
-    liveblog = PlaceholderField('live_blog', related_name='live_blog')
+    media = PlaceholderField('media', related_name=f'{app_label}_media')
+    content = PlaceholderField('post_content', related_name=f'{app_label}_post_content')
+    liveblog = PlaceholderField('live_blog', related_name=f'{app_label}_live_blog')
     enable_liveblog = models.BooleanField(verbose_name=_('enable liveblog on post'),
                                           default=False)
 
     objects = GenericDateTaggedManager()
-    tags = TaggableManager(blank=True, related_name='djangocms_blog_tags')
+    tags = TaggableManager(blank=True, related_name=f'{app_label}_tags')
 
-    related = SortedManyToManyField('self',
-                                    verbose_name=_('Related Posts'),
-                                    blank=True,
-                                    symmetrical=False)
+    related = SortedManyToManyField(
+        'self',
+        verbose_name=_('Related Posts'),
+        blank=True,
+        symmetrical=False,
+        related_name=f'{app_label}_related'
+    )
 
     _metadata = {
         'title': 'get_title',
@@ -484,18 +492,15 @@ post_translations = TranslatedFields(
 
 
 class Post(PostAbstract, TranslatableModel):
-
     translations = post_translations
-
-    class Meta:
-        abstract = False
 
 
 class BasePostPlugin(CMSPlugin):
     app_label = 'djangocms_blog'
 
     app_config = AppHookConfigField(
-        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True,
+        related_name=f'{app_label}_app_config'
     )
     current_site = models.BooleanField(
         _('current site'), default=True, help_text=_('Select items from the current site only')
@@ -544,9 +549,10 @@ class LatestPostsPluginAbstract(BasePostPlugin):
                                                    'articles to be displayed.'))
     tags = TaggableManager(_('filter by tag'), blank=True,
                            help_text=_('Show only the blog articles tagged with chosen tags.'),
-                           related_name='djangocms_blog_latest_post')
+                           related_name=f'{app_label}_latest_post')
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
+                                        related_name=f'{app_label}_categories',
                                         help_text=_('Show only the blog articles tagged '
                                                     'with chosen categories.'))
 
@@ -572,9 +578,7 @@ class LatestPostsPluginAbstract(BasePostPlugin):
 
 
 class LatestPostsPlugin(LatestPostsPluginAbstract):
-
-    class Meta:
-        abstract = False
+    pass
 
 
 @python_2_unicode_compatible
@@ -622,7 +626,6 @@ class GenericBlogPluginAbstract(BasePostPlugin):
 
 
 class GenericBlogPlugin(GenericBlogPluginAbstract):
-
     class Meta:
         abstract = False
 
