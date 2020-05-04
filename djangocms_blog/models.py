@@ -306,7 +306,8 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     class Meta:
         verbose_name = _('blog article')
         verbose_name_plural = _('blog articles')
-        ordering = ('-date_published', '-date_created')
+        # ToDo fix it
+        # ordering = ('-date_published', '-date_created')
         get_latest_by = 'date_published'
         abstract = True
 
@@ -556,7 +557,7 @@ class LatestPostsPluginAbstract(BasePostPlugin):
                                                    'articles to be displayed.'))
     tags = TaggableManager(_('filter by tag'), blank=True,
                            help_text=_('Show only the blog articles tagged with chosen tags.'),
-                           related_name='%(app_label)s_%(class)s_latest_post')
+                           related_name='{}_tags'.format(app_label))
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
                                         related_name='%(app_label)s_%(class)s_categories',
