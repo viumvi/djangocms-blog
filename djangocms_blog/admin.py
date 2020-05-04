@@ -74,8 +74,8 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         'date_published_end'
     ]
     search_fields = ('translations__title',)
-    date_hierarchy = 'date_published'
-    raw_id_fields = ['author']
+    # ToDo: fix it
+    # date_hierarchy = 'date_published'
     frontend_editable_fields = ('title', 'abstract', 'post_text')
     enhance_exclude = ('main_image', 'tags')
     actions = [
