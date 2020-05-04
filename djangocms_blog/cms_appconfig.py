@@ -19,6 +19,7 @@ class BlogConfigBase(AppHookConfig):
     """
 
     class Meta:
+        abstract = True
         verbose_name = _('blog config')
         verbose_name_plural = _('blog configs')
 
@@ -37,6 +38,11 @@ blog_config_translations = TranslatedFields(
 class BlogConfig(TranslatableModel, BlogConfigBase):
 
     translations = blog_config_translations
+
+    class Meta(BlogConfigBase.Meta):
+        abstract = False
+        verbose_name = _('blog config')
+        verbose_name_plural = _('blog configs')
 
 
 class BlogConfigForm(AppDataForm):

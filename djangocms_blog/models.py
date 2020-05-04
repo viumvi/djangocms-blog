@@ -501,11 +501,11 @@ class Post(PostAbstract, TranslatableModel):
 
 
 class BasePostPlugin(CMSPlugin):
-    app_label = 'djangocms_blog'
+    app_label2 = 'djangocms_blog'
 
     app_config = AppHookConfigField(
-        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True,
-        related_name=f'{app_label}_app_config'
+        get_model(app_label2, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True,
+        related_name='%(app_label)s_app_config'
     )
     current_site = models.BooleanField(
         _('current site'), default=True, help_text=_('Select items from the current site only')
@@ -554,10 +554,10 @@ class LatestPostsPluginAbstract(BasePostPlugin):
                                                    'articles to be displayed.'))
     tags = TaggableManager(_('filter by tag'), blank=True,
                            help_text=_('Show only the blog articles tagged with chosen tags.'),
-                           related_name=f'{app_label}_latest_post')
+                           related_name='%(app_label)_latest_post')
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
-                                        related_name=f'{app_label}_categories',
+                                        related_name='%(app_label)_categories',
                                         help_text=_('Show only the blog articles tagged '
                                                     'with chosen categories.'))
 
