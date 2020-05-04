@@ -87,7 +87,7 @@ class BlogCategoryAbstract(BlogMetaMixin):
     """
     Blog category
     """
-    module_name = 'djangocms_blog'
+    app_label = 'djangocms_blog'
 
     parent = models.ForeignKey(
         'self', verbose_name=_('parent'),
@@ -97,7 +97,7 @@ class BlogCategoryAbstract(BlogMetaMixin):
     date_created = models.DateTimeField(_('created at'), auto_now_add=True)
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
-        get_model(module_name, 'BlogConfig'), null=True, verbose_name=_('app. config')
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config')
     )
 
     objects = AppHookConfigTranslatableManager()
@@ -211,7 +211,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     """
     Blog post
     """
-    module_name = 'djangocms_blog'
+    app_label = 'djangocms_blog'
 
     author = models.ForeignKey(dj_settings.AUTH_USER_MODEL,
                                verbose_name=_('author'), null=True, blank=True,
@@ -223,7 +223,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
     date_published_end = models.DateTimeField(_('published until'), null=True, blank=True)
     date_featured = models.DateTimeField(_('featured date'), null=True, blank=True)
     publish = models.BooleanField(_('publish'), default=False)
-    categories = models.ManyToManyField(get_model(module_name, 'BlogCategory'), verbose_name=_('category'),
+    categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), verbose_name=_('category'),
                                         related_name='blog_posts', blank=True)
     main_image = FilerImageField(verbose_name=_('main image'), blank=True, null=True,
                                  on_delete=models.SET_NULL,
@@ -245,7 +245,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
                                                'If none is set it will be '
                                                'visible in all the configured sites.'))
     app_config = AppHookConfigField(
-        get_model(module_name, 'BlogConfig'), null=True, verbose_name=_('app. config')
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config')
     )
 
     media = PlaceholderField('media', related_name='media')
@@ -492,10 +492,10 @@ class Post(PostAbstract, TranslatableModel):
 
 
 class BasePostPlugin(CMSPlugin):
-    module_name = 'djangocms_blog'
+    app_label = 'djangocms_blog'
 
     app_config = AppHookConfigField(
-        get_model(module_name, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True
+        get_model(app_label, 'BlogConfig'), null=True, verbose_name=_('app. config'), blank=True
     )
     current_site = models.BooleanField(
         _('current site'), default=True, help_text=_('Select items from the current site only')
@@ -523,7 +523,7 @@ class BasePostPlugin(CMSPlugin):
 
     def post_queryset(self, request=None, published_only=True):
         language = get_language()
-        post_model = get_model(self.module_name, 'Post')
+        post_model = get_model(self.app_label, 'Post')
         posts = post_model.objects
         if self.app_config:
             posts = posts.namespace(self.app_config.namespace)
@@ -538,14 +538,14 @@ class BasePostPlugin(CMSPlugin):
 
 @python_2_unicode_compatible
 class LatestPostsPluginAbstract(BasePostPlugin):
-    module_name = 'djangocms_blog'
+    app_label = 'djangocms_blog'
     latest_posts = models.IntegerField(_('articles'), default=get_setting('LATEST_POSTS'),
                                        help_text=_('The number of latests '
                                                    'articles to be displayed.'))
     tags = TaggableManager(_('filter by tag'), blank=True,
                            help_text=_('Show only the blog articles tagged with chosen tags.'),
                            related_name='djangocms_blog_latest_post')
-    categories = models.ManyToManyField(get_model(module_name, 'BlogCategory'), blank=True,
+    categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
                                         help_text=_('Show only the blog articles tagged '
                                                     'with chosen categories.'))

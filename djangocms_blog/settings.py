@@ -166,17 +166,19 @@ def get_setting(name):
     return default['BLOG_%s' % name]
 
 
-def get_model(module_name: str, model_name: str):
+def get_model(app_label: str, model_name: str):
     from django.conf import settings
     if (
         hasattr(settings, 'DJANGOCMS_BLOG_BASED_APPS') and
-        module_name in settings.DJANGOCMS_BLOG_BASED_APPS.keys()
+        app_label in settings.DJANGOCMS_BLOG_BASED_APPS.keys()
     ):
-        models_path = settings.DJANGOCMS_BLOG_BASED_APPS[module_name]['models']
-        cms_appconfig_path = settings.DJANGOCMS_BLOG_BASED_APPS[module_name]['cms_appconfig']
+        models_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['models']
+        cms_appconfig_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['cms_appconfig']
 
         models = __import__('models', fromlist=[models_path])
         cms_appconfig = __import__('cms_appconfig', fromlist=[cms_appconfig_path])
+
+        # ToDo: import import
 
         if hasattr(models, model_name):
             return getattr(models, model_name)
@@ -190,5 +192,5 @@ def get_model(module_name: str, model_name: str):
         return getattr(models, model_name)
     elif hasattr(cms_appconfig, model_name):
         return getattr(cms_appconfig, model_name)
-    
+
     raise ImportError("Can't find the specified model")
