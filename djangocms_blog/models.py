@@ -82,7 +82,7 @@ class BlogMetaMixin(ModelMeta):
 
 
 @python_2_unicode_compatible
-class BlogCategoryAbstract(BlogMetaMixin):
+class BlogCategoryAbstract(models.Model, BlogMetaMixin):
     """
     Blog category
     """
@@ -172,7 +172,7 @@ class BlogCategoryAbstract(BlogMetaMixin):
         return self.safe_translation_getter('name', any_language=True, default=default)
 
     def save(self, *args, **kwargs):
-        super(BlogCategory, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         for lang in self.get_available_languages():
             self.set_current_language(lang)
             if not self.slug and self.name:
@@ -207,7 +207,7 @@ class BlogCategory(BlogCategoryAbstract, TranslatableModel):
 
 
 @python_2_unicode_compatible
-class PostAbstract(KnockerModel, BlogMetaMixin):
+class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
     """
     Blog post
     """
@@ -264,7 +264,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
                                           default=False)
 
     objects = GenericDateTaggedManager()
-    tags = TaggableManager(blank=True, related_name='%(app_label)s_%(class)s_tags')
+    tags = TaggableManager(blank=True, related_name='djangocms_blog_post_tags')
 
     related = SortedManyToManyField(
         'self',
@@ -340,7 +340,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
             self.date_published = timezone.now()
         if not self.slug and self.title:
             self.slug = slugify(self.title)
-        super(Post, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def save_translation(self, translation, *args, **kwargs):
         """
@@ -348,7 +348,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
         """
         if not translation.slug and translation.title:
             translation.slug = slugify(translation.title)
-        super(Post, self).save_translation(translation, *args, **kwargs)
+        super().save_translation(translation, *args, **kwargs)
 
     def get_absolute_url(self, lang=None):
         if not lang or lang not in self.get_available_languages():
@@ -558,7 +558,7 @@ class LatestPostsPluginAbstract(BasePostPlugin):
                                                    'articles to be displayed.'))
     tags = TaggableManager(_('filter by tag'), blank=True,
                            help_text=_('Show only the blog articles tagged with chosen tags.'),
-                           related_name='{}_tags'.format(app_label))
+                           related_name=f'{app_label}_posts_plugin_tags')
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
                                         related_name='%(app_label)s_%(class)s_categories',

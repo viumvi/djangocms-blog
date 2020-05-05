@@ -98,7 +98,9 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
             'fields': [[]]
         }),
         (_('Info'), {
-            'fields': [['slug', 'tags'],
+            # TODO inheritable: restore tags
+            # 'fields': [['slug', 'tags'],
+            'fields': [['slug'],
                        ['date_published', 'date_published_end', 'date_featured'],
                        ['enable_comments']],
             'classes': ('collapse',)
@@ -230,7 +232,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
             url(r'^publish/([0-9]+)/$', self.admin_site.admin_view(self.publish_post),
                 name='djangocms_blog_publish_article'),
         ]
-        urls.extend(super(PostAdmin, self).get_urls())
+        urls.extend(super().get_urls())
         return urls
 
     def post_add_plugin(self, request, obj1, obj2=None):
@@ -241,9 +243,9 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         if plugin.plugin_type in get_setting('LIVEBLOG_PLUGINS'):
             plugin = plugin.move(plugin.get_siblings().first(), 'first-sibling')
         if isinstance(obj1, CMSPlugin):
-            return super(PostAdmin, self).post_add_plugin(request, plugin)
+            return super().post_add_plugin(request, plugin)
         elif isinstance(obj2, CMSPlugin):
-            return super(PostAdmin, self).post_add_plugin(request, obj1, plugin)
+            return super().post_add_plugin(request, obj1, plugin)
 
     def publish_post(self, request, pk):
         """
@@ -294,7 +296,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
             return Site.objects.none()
 
     def _set_config_defaults(self, request, form, obj=None):
-        form = super(PostAdmin, self)._set_config_defaults(request, form, obj)
+        form = super()._set_config_defaults(request, form, obj)
         sites = self.get_restricted_sites(request)
         if 'sites' in form.base_fields and sites.exists():
             form.base_fields['sites'].queryset = self.get_restricted_sites(request).all()
@@ -310,7 +312,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         """
         app_config_default = self._app_config_select(request, obj)
         if app_config_default is None and request.method == 'GET':
-            return super(PostAdmin, self).get_fieldsets(request, obj)
+            return super().get_fieldsets(request, obj)
         if not obj:
             config = app_config_default
         else:
@@ -347,10 +349,10 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
 
     def save_model(self, request, obj, form, change):
         obj._set_default_author(request.user)
-        super(PostAdmin, self).save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
-        qs = super(PostAdmin, self).get_queryset(request)
+        qs = super().get_queryset(request)
         sites = self.get_restricted_sites(request)
         if sites.exists():
             pks = list(sites.all().values_list('pk', flat=True))
@@ -372,7 +374,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
                 form.instance.sites.add(
                     *self.get_restricted_sites(request).all().values_list('pk', flat=True)
                 )
-        super(PostAdmin, self).save_related(request, form, formsets, change)
+        super().save_related(request, form, formsets, change)
 
     class Media:
         css = {
@@ -458,7 +460,7 @@ class BlogConfigAdmin(BaseAppHookConfig, TranslatableAdmin):
         if 'config.menu_structure' in form.changed_data:
             from menus.menu_pool import menu_pool
             menu_pool.clear(all=True)
-        return super(BlogConfigAdmin, self).save_model(request, obj, form, change)
+        return super().save_model(request, obj, form, change)
 
 
 admin.site.register(BlogConfig, BlogConfigAdmin)
