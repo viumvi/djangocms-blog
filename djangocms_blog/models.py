@@ -40,7 +40,7 @@ from taggit_autosuggest.managers import TaggableManager
 
 from .fields import slugify
 from .managers import GenericDateTaggedManager
-from .settings import get_app_hook
+from .settings import get_app_config
 from .settings import get_model
 from .settings import get_setting
 
@@ -96,7 +96,7 @@ class BlogCategoryAbstract(BlogMetaMixin):
     date_created = models.DateTimeField(_('created at'), auto_now_add=True)
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
-        get_app_hook(app_label), null=True, verbose_name=_('app. config'),
+        get_app_config(app_label), null=True, verbose_name=_('app. config'),
         related_name='%(app_label)s_%(class)s_app_config',
     )
 
@@ -253,7 +253,7 @@ class PostAbstract(KnockerModel, BlogMetaMixin):
         related_name='%(app_label)s_%(class)s_post_thumbnail',
     )
     app_config = AppHookConfigField(
-        get_app_hook(app_label), null=True, verbose_name=_('app. config'),
+        get_app_config(app_label), null=True, verbose_name=_('app. config'),
         related_name='%(app_label)s_%(class)s_app_config',
     )
 
@@ -508,7 +508,7 @@ class BasePostPlugin(CMSPlugin):
     app_label = 'djangocms_blog'
 
     app_config = AppHookConfigField(
-        get_app_hook(app_label), null=True, verbose_name=_('app. config'), blank=True,
+        get_app_config(app_label), null=True, verbose_name=_('app. config'), blank=True,
         related_name='%(app_label)s_%(class)s_app_config'
     )
     current_site = models.BooleanField(

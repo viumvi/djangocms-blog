@@ -177,30 +177,21 @@ def get_model(app_label: str, model_name: str):
         app_label in settings.DJANGOCMS_BLOG_BASED_APPS.keys()
     ):
         models_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['models']
-        cms_appconfig_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['cms_appconfig']
 
-        models = importlib.import_module(models_path+'models')
-        cms_appconfig = importlib.import_module(cms_appconfig_path+'cms_appconfig')
-
-        # ToDo: import import
+        models = importlib.import_module(models_path)
 
         if hasattr(models, model_name):
             return getattr(models, model_name)
-        elif hasattr(cms_appconfig, model_name):
-            return getattr(cms_appconfig, model_name)
 
     from . import models
-    from . import cms_appconfig
 
     if hasattr(models, model_name):
         return getattr(models, model_name)
-    elif hasattr(cms_appconfig, model_name):
-        return getattr(cms_appconfig, model_name)
 
     raise ImportError("Can't find the specified model")
 
 
-def get_app_hook(app_label):
+def get_app_config(app_label):
     from django.conf import settings
     import importlib
 
@@ -209,17 +200,7 @@ def get_app_hook(app_label):
         app_label in settings.DJANGOCMS_BLOG_BASED_APPS.keys()
     ):
         cms_appconfig_path = settings.DJANGOCMS_BLOG_BASED_APPS[app_label]['cms_appconfig']
+        return importlib.import_module(cms_appconfig_path)
 
-        cms_appconfig = importlib.import_module(cms_appconfig_path+'cms_appconfig')
-
-        for clas in cms_appconfig.__dict__.items():
-            if issubclass(clas, AppHookConfig):
-                return getattr(cms_appconfig, clas)
-
-    from . import cms_appconfig
-
-    for clas in cms_appconfig.__dict__.items():
-        if issubclass(clas, AppHookConfig):
-            return getattr(cms_appconfig, clas)
-
-    raise ImportError("Can't find the specified model")
+    from .cms_appconfig import BlogConfig
+    return BlogConfig
