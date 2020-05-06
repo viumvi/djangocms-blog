@@ -17,12 +17,17 @@ from parler.views import TranslatableSlugMixin, ViewUrlMixin
 
 from .models import BlogCategory, Post
 from .settings import get_setting
+from .settings import APP_LABEL
 
 User = get_user_model()
 
 
 class BaseBlogView(AppConfigMixin, ViewUrlMixin):
     model = Post
+    APP_LABEL = APP_LABEL
+
+    def __init__(self):
+        self.APP_LABEL = APP_LABEL
 
     def optimize(self, qs):
         """
@@ -61,7 +66,7 @@ class BaseBlogView(AppConfigMixin, ViewUrlMixin):
         return self.optimize(queryset.on_site())
 
     def get_template_names(self):
-        template_path = (self.config and self.config.template_prefix) or 'djangocms_blog'
+        template_path = (self.config and self.config.template_prefix) or f'{self.APP_LABEL}'
         return os.path.join(template_path, self.base_template_name)
 
 
@@ -79,18 +84,21 @@ class BaseBlogListView(BaseBlogView):
 
 
 class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
+    APP_LABEL = APP_LABEL
     context_object_name = 'post'
     base_template_name = 'post_detail.html'
     slug_field = 'slug'
-    view_url_name = 'djangocms_blog:post-detail'
     instant_article = False
 
+    def __init__(self):
+        self.view_url_name = f'{self.APP_LABEL}:post-detail'
+
     def liveblog_enabled(self):
-        return self.object.enable_liveblog and apps.is_installed('djangocms_blog.liveblog')
+        return self.object.enable_liveblog and apps.is_installed(f'{self.APP_LABEL}.liveblog')
 
     def get_template_names(self):
         if self.instant_article:
-            template_path = (self.config and self.config.template_prefix) or 'djangocms_blog'
+            template_path = (self.config and self.config.template_prefix) or f'{self.APP_LABEL}'
             return os.path.join(template_path, 'post_instant_article.html')
         else:
             return super(PostDetailView, self).get_template_names()
@@ -117,14 +125,20 @@ class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
 
 
 class PostListView(BaseBlogListView, ListView):
-    view_url_name = 'djangocms_blog:posts-latest'
+    APP_LABEL = APP_LABEL
+
+    def __init__(self):
+        self.view_url_name = f'{self.APP_LABEL}:posts-latest'
 
 
 class PostArchiveView(BaseBlogListView, ListView):
+    APP_LABEL = APP_LABEL
     date_field = 'date_published'
     allow_empty = True
     allow_future = True
-    view_url_name = 'djangocms_blog:posts-archive'
+
+    def __init__(self):
+        self.view_url_name = f'{self.APP_LABEL}:posts-archive'
 
     def get_queryset(self):
         qs = super(PostArchiveView, self).get_queryset()
@@ -144,7 +158,10 @@ class PostArchiveView(BaseBlogListView, ListView):
 
 
 class TaggedListView(BaseBlogListView, ListView):
-    view_url_name = 'djangocms_blog:posts-tagged'
+    APP_LABEL = APP_LABEL
+
+    def __init__(self):
+        self.view_url_name = f'{self.APP_LABEL}:posts-tagged'
 
     def get_queryset(self):
         qs = super(TaggedListView, self).get_queryset()
@@ -158,7 +175,10 @@ class TaggedListView(BaseBlogListView, ListView):
 
 
 class AuthorEntriesView(BaseBlogListView, ListView):
-    view_url_name = 'djangocms_blog:posts-author'
+    APP_LABEL = APP_LABEL
+
+    def __init__(self):
+        self.view_url_name = f'{self.APP_LABEL}:posts-author'
 
     def get_queryset(self):
         qs = super(AuthorEntriesView, self).get_queryset()
@@ -176,8 +196,11 @@ class AuthorEntriesView(BaseBlogListView, ListView):
 
 
 class CategoryEntriesView(BaseBlogListView, ListView):
+    APP_LABEL = APP_LABEL
     _category = None
-    view_url_name = 'djangocms_blog:posts-category'
+
+    def __init__(self):
+        self.view_url_name = f'{self.APP_LABEL}:posts-category'
 
     @property
     def category(self):

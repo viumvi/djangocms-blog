@@ -14,6 +14,8 @@ PERMALINK_TYPE_SHORT_DATE = 'short_date'
 PERMALINK_TYPE_CATEGORY = 'category'
 PERMALINK_TYPE_SLUG = 'slug'
 
+APP_LABEL = 'djangocms_blog'
+
 
 def get_setting(name):
     from django.conf import settings
