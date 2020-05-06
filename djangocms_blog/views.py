@@ -24,10 +24,12 @@ User = get_user_model()
 
 class BaseBlogView(AppConfigMixin, ViewUrlMixin):
     model = Post
+    post = Post
     APP_LABEL = APP_LABEL
 
     def __init__(self):
         self.APP_LABEL = APP_LABEL
+        self.model = self.post
 
     def optimize(self, qs):
         """
@@ -85,6 +87,7 @@ class BaseBlogListView(BaseBlogView):
 
 class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
     APP_LABEL = APP_LABEL
+    model = Post
     context_object_name = 'post'
     base_template_name = 'post_detail.html'
     slug_field = 'slug'
@@ -198,6 +201,7 @@ class AuthorEntriesView(BaseBlogListView, ListView):
 class CategoryEntriesView(BaseBlogListView, ListView):
     APP_LABEL = APP_LABEL
     _category = None
+    blog_category_model = BlogCategory
 
     def __init__(self):
         self.view_url_name = f'{self.APP_LABEL}:posts-category'
@@ -206,10 +210,10 @@ class CategoryEntriesView(BaseBlogListView, ListView):
     def category(self):
         if not self._category:
             try:
-                self._category = BlogCategory.objects.active_translations(
+                self._category = self.blog_category_model.objects.active_translations(
                     get_language(), slug=self.kwargs['category']
                 ).get()
-            except BlogCategory.DoesNotExist:
+            except self.blog_category_model.DoesNotExist:
                 raise Http404
         return self._category
 
