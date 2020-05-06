@@ -24,12 +24,7 @@ User = get_user_model()
 
 class BaseBlogView(AppConfigMixin, ViewUrlMixin):
     model = Post
-    post = Post
     APP_LABEL = APP_LABEL
-
-    def __init__(self):
-        self.APP_LABEL = APP_LABEL
-        self.model = self.post
 
     def optimize(self, qs):
         """
@@ -77,7 +72,7 @@ class BaseBlogListView(BaseBlogView):
     base_template_name = 'post_list.html'
 
     def get_context_data(self, **kwargs):
-        context = super(BaseBlogListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['TRUNCWORDS_COUNT'] = get_setting('POSTS_LIST_TRUNCWORDS_COUNT')
         return context
 
@@ -86,8 +81,6 @@ class BaseBlogListView(BaseBlogView):
 
 
 class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
-    APP_LABEL = APP_LABEL
-    model = Post
     context_object_name = 'post'
     base_template_name = 'post_detail.html'
     slug_field = 'slug'
@@ -104,7 +97,7 @@ class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
             template_path = (self.config and self.config.template_prefix) or f'{self.APP_LABEL}'
             return os.path.join(template_path, 'post_instant_article.html')
         else:
-            return super(PostDetailView, self).get_template_names()
+            return super().get_template_names()
 
     def get_queryset(self):
         queryset = self.model._default_manager.all()
@@ -116,10 +109,10 @@ class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
         # submit object to cms to get corrent language switcher and selected category behavior
         if hasattr(self.request, 'toolbar'):
             self.request.toolbar.set_object(self.get_object())
-        return super(PostDetailView, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        context = super(PostDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['meta'] = self.get_object().as_meta()
         context['instant_article'] = self.instant_article
         context['use_placeholder'] = get_setting('USE_PLACEHOLDER')
@@ -128,14 +121,12 @@ class PostDetailView(TranslatableSlugMixin, BaseBlogView, DetailView):
 
 
 class PostListView(BaseBlogListView, ListView):
-    APP_LABEL = APP_LABEL
 
     def __init__(self):
         self.view_url_name = f'{self.APP_LABEL}:posts-latest'
 
 
 class PostArchiveView(BaseBlogListView, ListView):
-    APP_LABEL = APP_LABEL
     date_field = 'date_published'
     allow_empty = True
     allow_future = True
@@ -144,7 +135,7 @@ class PostArchiveView(BaseBlogListView, ListView):
         self.view_url_name = f'{self.APP_LABEL}:posts-archive'
 
     def get_queryset(self):
-        qs = super(PostArchiveView, self).get_queryset()
+        qs = super().get_queryset()
         if 'month' in self.kwargs:
             qs = qs.filter(**{'%s__month' % self.date_field: self.kwargs['month']})
         if 'year' in self.kwargs:
@@ -156,35 +147,33 @@ class PostArchiveView(BaseBlogListView, ListView):
         kwargs['year'] = int(self.kwargs.get('year')) if 'year' in self.kwargs else None
         if kwargs['year']:
             kwargs['archive_date'] = now().replace(kwargs['year'], kwargs['month'] or 1, 1)
-        context = super(PostArchiveView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context
 
 
 class TaggedListView(BaseBlogListView, ListView):
-    APP_LABEL = APP_LABEL
 
     def __init__(self):
         self.view_url_name = f'{self.APP_LABEL}:posts-tagged'
 
     def get_queryset(self):
-        qs = super(TaggedListView, self).get_queryset()
+        qs = super().get_queryset()
         return self.optimize(qs.filter(tags__slug=self.kwargs['tag']))
 
     def get_context_data(self, **kwargs):
         kwargs['tagged_entries'] = (self.kwargs.get('tag')
                                     if 'tag' in self.kwargs else None)
-        context = super(TaggedListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context
 
 
 class AuthorEntriesView(BaseBlogListView, ListView):
-    APP_LABEL = APP_LABEL
 
     def __init__(self):
         self.view_url_name = f'{self.APP_LABEL}:posts-author'
 
     def get_queryset(self):
-        qs = super(AuthorEntriesView, self).get_queryset()
+        qs = super().get_queryset()
         if 'username' in self.kwargs:
             qs = qs.filter(**{'author__%s' % User.USERNAME_FIELD: self.kwargs['username']})
         return self.optimize(qs)
@@ -194,12 +183,11 @@ class AuthorEntriesView(BaseBlogListView, ListView):
             User,
             **{User.USERNAME_FIELD: self.kwargs.get('username')}
         )
-        context = super(AuthorEntriesView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context
 
 
 class CategoryEntriesView(BaseBlogListView, ListView):
-    APP_LABEL = APP_LABEL
     _category = None
     blog_category_model = BlogCategory
 
@@ -221,16 +209,16 @@ class CategoryEntriesView(BaseBlogListView, ListView):
         # submit object to cms toolbar to get correct language switcher behavior
         if hasattr(self.request, 'toolbar'):
             self.request.toolbar.set_object(self.category)
-        return super(CategoryEntriesView, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
     def get_queryset(self):
-        qs = super(CategoryEntriesView, self).get_queryset()
+        qs = super().get_queryset()
         if 'category' in self.kwargs:
             qs = qs.filter(categories=self.category.pk)
         return self.optimize(qs)
 
     def get_context_data(self, **kwargs):
         kwargs['category'] = self.category
-        context = super(CategoryEntriesView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['meta'] = self.category.as_meta()
         return context
