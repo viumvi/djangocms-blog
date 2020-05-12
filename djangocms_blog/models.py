@@ -226,7 +226,7 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
     publish = models.BooleanField(_('publish'), default=False)
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'),
                                         verbose_name=_('category'),
-                                        related_name='%(app_label)s_%(class)s_blog_posts',
+                                        related_name='blog_posts',
                                         blank=True)
     main_image = FilerImageField(verbose_name=_('main image'), blank=True, null=True,
                                  on_delete=models.SET_NULL,
