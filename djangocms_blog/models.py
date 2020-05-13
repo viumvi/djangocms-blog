@@ -90,14 +90,13 @@ class BlogCategoryAbstract(models.Model, BlogMetaMixin):
 
     parent = models.ForeignKey(
         'self', verbose_name=_('parent'),
-        null=True, blank=True, related_name='%(app_label)s_%(class)s_children',
+        null=True, blank=True, related_name='children',
         on_delete=models.CASCADE
     )
     date_created = models.DateTimeField(_('created at'), auto_now_add=True)
     date_modified = models.DateTimeField(_('modified at'), auto_now=True)
     app_config = AppHookConfigField(
         get_app_config(app_label), null=True, verbose_name=_('app. config'),
-        related_name='%(app_label)s_%(class)s_app_config',
     )
 
     objects = AppHookConfigTranslatableManager()
@@ -215,7 +214,7 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
 
     author = models.ForeignKey(dj_settings.AUTH_USER_MODEL,
                                verbose_name=_('author'), null=True, blank=True,
-                               related_name='%(app_label)s_%(class)s_post_author',
+                               related_name='%(app_label)s_post_author',
                                on_delete=models.PROTECT)
 
     date_created = models.DateTimeField(_('created'), auto_now_add=True)
@@ -254,7 +253,6 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
     )
     app_config = AppHookConfigField(
         get_app_config(app_label), null=True, verbose_name=_('app. config'),
-        related_name='%(app_label)s_%(class)s_app_config',
     )
 
     media = PlaceholderField('media', related_name='%(app_label)s_%(class)s_media')
@@ -271,7 +269,6 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
         verbose_name=_('Related Posts'),
         blank=True,
         symmetrical=False,
-        related_name='%(app_label)s_%(class)s_related'
     )
 
     _metadata = {
@@ -509,7 +506,6 @@ class BasePostPlugin(CMSPlugin):
 
     app_config = AppHookConfigField(
         get_app_config(app_label), null=True, verbose_name=_('app. config'), blank=True,
-        related_name='%(app_label)s_%(class)s_app_config'
     )
     current_site = models.BooleanField(
         _('current site'), default=True, help_text=_('Select items from the current site only')
@@ -561,7 +557,6 @@ class LatestPostsPluginAbstract(BasePostPlugin):
                            related_name=f'{app_label}_posts_plugin_tags')
     categories = models.ManyToManyField(get_model(app_label, 'BlogCategory'), blank=True,
                                         verbose_name=_('filter by category'),
-                                        related_name='%(app_label)s_%(class)s_categories',
                                         help_text=_('Show only the blog articles tagged '
                                                     'with chosen categories.'))
 
