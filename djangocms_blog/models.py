@@ -96,6 +96,7 @@ class BlogCategory(BlogMetaMixin, TranslatableModel):
     date_created = models.DateTimeField(_("created at"), auto_now_add=True)
     date_modified = models.DateTimeField(_("modified at"), auto_now=True)
     app_config = AppHookConfigField(BlogConfig, null=True, verbose_name=_("app. config"))
+    order = models.PositiveIntegerField(default=0)
 
     translations = TranslatedFields(
         name=models.CharField(_("name"), max_length=752),
@@ -131,6 +132,7 @@ class BlogCategory(BlogMetaMixin, TranslatableModel):
     class Meta:
         verbose_name = _("blog category")
         verbose_name_plural = _("blog categories")
+        ordering = ['order']
 
     def descendants(self):
         children = []

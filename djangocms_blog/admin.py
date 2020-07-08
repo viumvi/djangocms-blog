@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from adminsortable2.admin import SortableAdminMixin
 from aldryn_apphooks_config.admin import BaseAppHookConfig, ModelAppHookConfig
 from cms.admin.placeholderadmin import FrontendEditableAdminMixin, PlaceholderAdminMixin
 from cms.models import CMSPlugin, ValidationError
@@ -88,7 +89,7 @@ class SiteListFilter(admin.SimpleListFilter):
             raise admin.options.IncorrectLookupParameters(e)
 
 
-class BlogCategoryAdmin(ModelAppHookConfig, TranslatableAdmin):
+class BlogCategoryAdmin(SortableAdminMixin, ModelAppHookConfig, TranslatableAdmin):
     form = CategoryAdminForm
     list_display = [
         "name",
