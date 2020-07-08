@@ -211,29 +211,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
     categories = models.ManyToManyField(
         "djangocms_blog.BlogCategory", verbose_name=_("category"), related_name="blog_posts", blank=True
     )
-    main_image = FilerImageField(
-        verbose_name=_("main image"),
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="djangocms_blog_post_image",
-    )
-    main_image_thumbnail = models.ForeignKey(
-        thumbnail_model,
-        verbose_name=_("main image thumbnail"),
-        related_name="djangocms_blog_post_thumbnail",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-    )
-    main_image_full = models.ForeignKey(
-        thumbnail_model,
-        verbose_name=_("main image full"),
-        related_name="djangocms_blog_post_full",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-    )
+
     enable_comments = models.BooleanField(
         verbose_name=_("enable comments on post"), default=get_setting("ENABLE_COMMENTS")
     )
@@ -254,6 +232,29 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         slug=models.SlugField(_("slug"), max_length=752, blank=True, db_index=True, allow_unicode=True),
         subtitle=models.CharField(verbose_name=_("subtitle"), max_length=767, blank=True, default=""),
         abstract=HTMLField(_("abstract"), blank=True, default="", configuration="BLOG_ABSTRACT_CKEDITOR"),
+        main_image = FilerImageField(
+            verbose_name=_("main image"),
+            blank=True,
+            null=True,
+            on_delete=models.SET_NULL,
+            related_name="djangocms_blog_post_image",
+        ),
+        main_image_thumbnail = models.ForeignKey(
+            thumbnail_model,
+            verbose_name=_("main image thumbnail"),
+            related_name="djangocms_blog_post_thumbnail",
+            on_delete=models.SET_NULL,
+            blank=True,
+            null=True,
+        ),
+        main_image_full = models.ForeignKey(
+            thumbnail_model,
+            verbose_name=_("main image full"),
+            related_name="djangocms_blog_post_full",
+            on_delete=models.SET_NULL,
+            blank=True,
+            null=True,
+        ),
         meta_description=models.TextField(verbose_name=_("post meta description"), blank=True, default=""),
         meta_keywords=models.TextField(verbose_name=_("post meta keywords"), blank=True, default=""),
         meta_title=models.CharField(
