@@ -125,17 +125,67 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
     inlines = []
     if apps.is_installed("djangocms_blog.liveblog"):
         actions += ["enable_liveblog", "disable_liveblog"]
-    fieldsets = [
-        (None, {"fields": ["title", "slug", "publish", "categories", "abstract", "author", "main_image", "related"]}),
+    _fieldsets = [
+        (None, {"fields": ["title", "subtitle", "slug", "publish", ["categories", "app_config"]]}),
+        (None, {"fields": [[]]}),
         (
             _("Info"),
             {
-                "fields": ["tags", "date_published", "date_published_end", "date_featured",],
+                "fields": ["tags", ["date_published", "date_published_end", "date_featured"], ["enable_comments"]],
                 "classes": ("collapse",),
             },
         ),
-        (_("SEO"), {"fields": ["meta_description", "meta_title", "meta_keywords"], "classes": ("collapse",)}),
+        (
+            _("Images"),
+            {"fields": [["main_image", "main_image_thumbnail", "main_image_full"]], "classes": ("collapse",)},
+        ),
+        (_("SEO"), {"fields": [["meta_description", "meta_title", "meta_keywords"]], "classes": ("collapse",)}),
     ]
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Customize the fieldsets according to the app settings
+
+        :param request: request
+        :param obj: post
+        :return: fieldsets configuration
+        """
+        app_config_default = self._app_config_select(request, obj)
+        if app_config_default is None and request.method == "GET":
+            return super().get_fieldsets(request, obj)
+        if not obj:
+            config = app_config_default
+        else:
+            config = obj.app_config
+
+        fsets = deepcopy(self._fieldsets)
+        related_posts = []
+        if config:
+            abstract = bool(config.use_abstract)
+            placeholder = bool(config.use_placeholder)
+            related = bool(config.use_related)
+        else:
+            abstract = get_setting("USE_ABSTRACT")
+            placeholder = get_setting("USE_PLACEHOLDER")
+            related = get_setting("USE_RELATED")
+        if related:
+            related_posts = self._get_available_posts(config)
+        if abstract:
+            fsets[0][1]["fields"].append("abstract")
+        if not placeholder:
+            fsets[0][1]["fields"].append("post_text")
+        if get_setting("MULTISITE") and not self.has_restricted_sites(request):
+            fsets[1][1]["fields"][0].append("sites")
+        if request.user.is_superuser:
+            fsets[1][1]["fields"][0].append("author")
+        if apps.is_installed("djangocms_blog.liveblog"):
+            fsets[2][1]["fields"][2].append("enable_liveblog")
+        filter_function = get_setting("ADMIN_POST_FIELDSET_FILTER")
+        if related_posts:
+            fsets[1][1]["fields"][0].append("related")
+        if callable(filter_function):
+            fsets = filter_function(fsets, request, obj=obj)
+        return fsets
 
     app_config_values = {"default_published": "publish"}
     _sites = None
