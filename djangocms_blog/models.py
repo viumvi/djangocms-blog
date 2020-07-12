@@ -256,9 +256,9 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
         get_app_config(app_label), null=True, verbose_name=_('app. config'),
     )
 
-    media = PlaceholderField(pgettext('Media'), related_name='%(app_label)s_%(class)s_media')
-    content = PlaceholderField(pgettext('Post Content'), related_name='%(app_label)s_%(class)s_post_content')
-    liveblog = PlaceholderField(pgettext('Live Blog'), related_name='%(app_label)s_%(class)s_live_blog')
+    media = PlaceholderField(pgettext('verbose-name', 'Media'), related_name='%(app_label)s_%(class)s_media')
+    content = PlaceholderField(pgettext('verbose-name', 'Post Content'), related_name='%(app_label)s_%(class)s_post_content')
+    liveblog = PlaceholderField(pgettext('verbose-name', 'Live Blog'), related_name='%(app_label)s_%(class)s_live_blog')
     enable_liveblog = models.BooleanField(verbose_name=_('enable liveblog on post'),
                                           default=False)
 
