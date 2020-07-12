@@ -26,6 +26,7 @@ from django.utils.functional import cached_property
 from django.utils.html import escape
 from django.utils.html import strip_tags
 from django.utils.translation import get_language
+from django.utils.translation import pgettext
 from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
 from djangocms_text_ckeditor.fields import HTMLField
@@ -255,9 +256,9 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
         get_app_config(app_label), null=True, verbose_name=_('app. config'),
     )
 
-    media = PlaceholderField('media', related_name='%(app_label)s_%(class)s_media')
-    content = PlaceholderField('post_content', related_name='%(app_label)s_%(class)s_post_content')
-    liveblog = PlaceholderField('live_blog', related_name='%(app_label)s_%(class)s_live_blog')
+    media = PlaceholderField(pgettext('Media'), related_name='%(app_label)s_%(class)s_media')
+    content = PlaceholderField(pgettext('Post Content'), related_name='%(app_label)s_%(class)s_post_content')
+    liveblog = PlaceholderField(pgettext('Live Blog'), related_name='%(app_label)s_%(class)s_live_blog')
     enable_liveblog = models.BooleanField(verbose_name=_('enable liveblog on post'),
                                           default=False)
 
