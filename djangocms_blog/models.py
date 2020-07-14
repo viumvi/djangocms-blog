@@ -231,16 +231,6 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
     main_image = FilerImageField(verbose_name=_('main image'), blank=True, null=True,
                                  on_delete=models.SET_NULL,
                                  related_name='%(app_label)s_%(class)s_post_image')
-    main_image_thumbnail = models.ForeignKey(thumbnail_model,
-                                             verbose_name=_('main image thumbnail'),
-                                             related_name='%(app_label)s_%(class)s_post_thumbnail',
-                                             on_delete=models.SET_NULL,
-                                             blank=True, null=True)
-    main_image_full = models.ForeignKey(thumbnail_model,
-                                        verbose_name=_('main image full'),
-                                        related_name='%(app_label)s_%(class)s_post_full',
-                                        on_delete=models.SET_NULL,
-                                        blank=True, null=True)
     enable_comments = models.BooleanField(verbose_name=_('enable comments on post'),
                                           default=get_setting('ENABLE_COMMENTS'))
     sites = models.ManyToManyField(
@@ -497,6 +487,17 @@ def get_blog_post_translations():
 
 class Post(PostAbstract, TranslatableModel):
     translations = get_blog_post_translations()
+
+    main_image_thumbnail = models.ForeignKey(thumbnail_model,
+                                             verbose_name=_('main image thumbnail'),
+                                             related_name='%(app_label)s_%(class)s_post_thumbnail',
+                                             on_delete=models.SET_NULL,
+                                             blank=True, null=True)
+    main_image_full = models.ForeignKey(thumbnail_model,
+                                        verbose_name=_('main image full'),
+                                        related_name='%(app_label)s_%(class)s_post_full',
+                                        on_delete=models.SET_NULL,
+                                        blank=True, null=True)
 
     class Meta(PostAbstract.Meta):
         abstract = False
