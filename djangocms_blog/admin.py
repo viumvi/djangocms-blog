@@ -71,7 +71,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
     form = PostAdminForm
     post_model = Post
     list_display = [
-        'title', 'author', 'date_published', 'app_config', 'all_languages_column',
+        'title', 'date_published', 'app_config', 'all_languages_column',
         'date_published_end'
     ]
     search_fields = ('translations__title',)
@@ -333,8 +333,8 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
             fsets[0][1]['fields'].append('post_text')
         if get_setting('MULTISITE') and not self.has_restricted_sites(request):
             fsets[1][1]['fields'][0].append('sites')
-        if request.user.is_superuser:
-            fsets[1][1]['fields'][0].append('author')
+        # if request.user.is_superuser:
+        #     fsets[1][1]['fields'][0].append('author')
         if apps.is_installed('djangocms_blog.liveblog'):
             fsets[2][1]['fields'][2].append('enable_liveblog')
         filter_function = get_setting('ADMIN_POST_FIELDSET_FILTER')
@@ -348,7 +348,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin,
         return {'slug': ('title',)}
 
     def save_model(self, request, obj, form, change):
-        obj._set_default_author(request.user)
+        # obj._set_default_author(request.user)
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):

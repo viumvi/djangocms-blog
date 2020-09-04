@@ -213,11 +213,6 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
     """
     app_label = 'djangocms_blog'
 
-    author = models.ForeignKey(dj_settings.AUTH_USER_MODEL,
-                               verbose_name=_('author'), null=True, blank=True,
-                               related_name='%(app_label)s_post_author',
-                               on_delete=models.PROTECT)
-
     date_created = models.DateTimeField(_('created'), auto_now_add=True)
     date_modified = models.DateTimeField(_('last modified'), auto_now=True)
     date_published = models.DateTimeField(_('published since'), null=True, blank=True)
@@ -405,19 +400,6 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
         taglist = [tag.name for tag in self.tags.all()]
         return ','.join(taglist)
 
-    def get_author(self):
-        """
-        Return the author (user) objects
-        """
-        return self.author
-
-    def _set_default_author(self, current_user):
-        if not self.author_id and self.app_config.set_author:
-            if get_setting('AUTHOR_DEFAULT') is True:
-                user = current_user
-            else:
-                user = get_user_model().objects.get(username=get_setting('AUTHOR_DEFAULT'))
-            self.author = user
 
     def thumbnail_options(self):
         if self.main_image_thumbnail_id:
@@ -488,6 +470,12 @@ def get_blog_post_translations():
 class Post(PostAbstract, TranslatableModel):
     translations = get_blog_post_translations()
 
+    author = models.ForeignKey(dj_settings.AUTH_USER_MODEL,
+                               verbose_name=_('author'), null=True, blank=True,
+                               related_name='%(app_label)s_post_author',
+                               on_delete=models.PROTECT)
+
+
     main_image_thumbnail = models.ForeignKey(thumbnail_model,
                                              verbose_name=_('main image thumbnail'),
                                              related_name='%(app_label)s_%(class)s_post_thumbnail',
@@ -498,6 +486,20 @@ class Post(PostAbstract, TranslatableModel):
                                         related_name='%(app_label)s_%(class)s_post_full',
                                         on_delete=models.SET_NULL,
                                         blank=True, null=True)
+
+    def get_author(self):
+        """
+        Return the author (user) objects
+        """
+        return self.author
+
+    def _set_default_author(self, current_user):
+        if not self.author_id and self.app_config.set_author:
+            if get_setting('AUTHOR_DEFAULT') is True:
+                user = current_user
+            else:
+                user = get_user_model().objects.get(username=get_setting('AUTHOR_DEFAULT'))
+            self.author = user
 
     class Meta(PostAbstract.Meta):
         abstract = False
