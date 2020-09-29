@@ -23,7 +23,7 @@ class PluginTest(BaseTest):
         pages = self.get_pages()
         posts = self.get_posts()
         posts[0].tags.add("tag 1")
-        posts[0].publish = True
+        posts[0].is_publish = True
         posts[0].save()
         ph = pages[0].placeholders.get(slot="content")
 
@@ -56,7 +56,7 @@ class PluginTest(BaseTest):
         pages = self.get_pages()
         posts = self.get_posts()
         posts[0].tags.add("tag 1")
-        posts[0].publish = True
+        posts[0].is_publish = True
         posts[0].save()
         ph = pages[0].placeholders.get(slot="content")
 
@@ -131,10 +131,10 @@ class PluginTest(BaseTest):
         pages = self.get_pages()
         posts = self.get_posts()
         posts[0].tags.add("tag 1", "tag 2", "test tag")
-        posts[0].publish = True
+        posts[0].is_publish = True
         posts[0].save()
         posts[1].tags.add("test tag", "another tag")
-        posts[1].publish = True
+        posts[1].is_publish = True
         posts[1].save()
         ph = pages[0].placeholders.get(slot="content")
         plugin = add_plugin(ph, "BlogTagsPlugin", language="en", app_config=self.app_config_1)

@@ -414,7 +414,7 @@ class SitemapViewTest(BaseTest):
         posts[0].tags.add("tag 1", "tag 2", "tag 3", "tag 4")
         posts[0].save()
         posts[1].tags.add("tag 6", "tag 2", "tag 5", "tag 8")
-        posts[1].publish = True
+        posts[1].is_publish = True
         posts[1].save()
         posts[0].set_current_language("en")
 

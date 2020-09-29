@@ -33,31 +33,31 @@ class BaseTest(BaseTestCase):
 
     _pages_data = (
         {
-            "en": {"title": "page one", "template": "blog.html", "publish": True},
-            "fr": {"title": "page un", "publish": True},
-            "it": {"title": "pagina uno", "publish": True},
+            "en": {"title": "page one", "template": "blog.html", "is_publish": True},
+            "fr": {"title": "page un", "is_publish": True},
+            "it": {"title": "pagina uno", "is_publish": True},
         },
         {
             "en": {
                 "title": "page two",
                 "template": "blog.html",
-                "publish": True,
+                "is_publish": True,
                 "apphook": "BlogApp",
                 "apphook_namespace": "sample_app",
             },
-            "fr": {"title": "page deux", "publish": True},
-            "it": {"title": "pagina due", "publish": True},
+            "fr": {"title": "page deux", "is_publish": True},
+            "it": {"title": "pagina due", "is_publish": True},
         },
         {
             "en": {
                 "title": "page three",
                 "template": "blog.html",
-                "publish": True,
+                "is_publish": True,
                 "apphook": "BlogApp",
                 "apphook_namespace": "sample_app2",
             },
-            "fr": {"title": "page trois", "publish": True},
-            "it": {"title": "pagina tre", "publish": True},
+            "fr": {"title": "page trois", "is_publish": True},
+            "it": {"title": "pagina tre", "is_publish": True},
         },
     )
 
@@ -70,7 +70,7 @@ class BaseTest(BaseTestCase):
                 "keywords": "keyword1, keyword2",
                 "text": "Post text",
                 "app_config": "sample_app",
-                "publish": True,
+                "is_publish": True,
             },
             "it": {
                 "title": "Primo post",
@@ -88,7 +88,7 @@ class BaseTest(BaseTestCase):
                 "keywords": "keyword3, keyword4",
                 "text": "Second post text",
                 "app_config": "sample_app",
-                "publish": False,
+                "is_publish": False,
             },
             "it": {
                 "title": "Secondo post",
@@ -107,7 +107,7 @@ class BaseTest(BaseTestCase):
                 "keywords": "keyword5, keyword6",
                 "text": "Third post text",
                 "app_config": "sample_app",
-                "publish": False,
+                "is_publish": False,
             },
             "it": {
                 "title": "Terzo post",
@@ -125,7 +125,7 @@ class BaseTest(BaseTestCase):
                 "keywords": "keyword5, keyword6",
                 "text": "Different appconfig text",
                 "app_config": "sample_app2",
-                "publish": True,
+                "is_publish": True,
             },
             "it": {
                 "title": "Altro appconfig",
@@ -250,7 +250,7 @@ class BaseTest(BaseTestCase):
         for post in self._post_data:
             post1 = self._get_post(post["en"], sites=sites)
             post1 = self._get_post(post["it"], post=post1, lang="it")
-            post1.publish = post["en"]["publish"]
+            post1.is_publish = post["en"]["publish"]
             post1.main_image = self.create_filer_image_object()
             post1.save()
             posts.append(post1)

@@ -125,7 +125,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
     if apps.is_installed("djangocms_blog.liveblog"):
         actions += ["enable_liveblog", "disable_liveblog"]
     _fieldsets = [
-        (None, {"fields": ["title", "subtitle", "slug", "publish", ["categories", "app_config"]]}),
+        (None, {"fields": ["title", "subtitle", "slug", "is_publish", ["categories", "app_config"]]}),
         (None, {"fields": [[]]}),
         (
             _("Info"),
@@ -141,7 +141,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
         (_("SEO"), {"fields": [["meta_description", "meta_title", "meta_keywords"]], "classes": ("collapse",)}),
     ]
 
-    app_config_values = {"default_published": "publish"}
+    app_config_values = {"default_published": "is_publish"}
     _sites = None
 
     # Bulk actions for post admin

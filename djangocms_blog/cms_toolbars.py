@@ -39,7 +39,7 @@ class BlogToolbar(CMSToolbar):
         if (
             self.toolbar.edit_mode_active
             and current_post
-            and not current_post.publish
+            and not current_post.safe_translation_getter("is_publish")
             and self.request.user.has_perm("djangocms_blog.change_post")
         ):  # pragma: no cover  # NOQA
             classes = ["cms-btn-action", "blog-publish"]
