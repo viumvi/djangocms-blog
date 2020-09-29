@@ -16,7 +16,7 @@ class LiveblogPlugin(TextPlugin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if obj.publish:
+        if obj.self.safe_translation_getter('publish'):
             obj.send(request)
 
     def render(self, context, instance, placeholder):

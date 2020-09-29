@@ -335,7 +335,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         """
         Handle some auto configuration during save
         """
-        if self.safe_translation_getter('is_publish') and self.date_published is None:
+        if self.safe_translation_getter('publish') and self.date_published is None:
             self.date_published = timezone.now()
         if not self.slug and self.title:
             self.slug = slugify(self.title)
@@ -444,7 +444,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         Checks wether the blog post is *really* published by checking publishing dates too
         """
         return (
-            self.safe_translation_getter('is_publish')
+            self.safe_translation_getter('publish')
             and (self.date_published and self.date_published <= timezone.now())
             and (self.date_published_end is None or self.date_published_end > timezone.now())
         )
