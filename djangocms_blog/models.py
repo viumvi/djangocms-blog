@@ -205,7 +205,6 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
     date_published = models.DateTimeField(_("published since"), null=True, blank=True)
     date_published_end = models.DateTimeField(_("published until"), null=True, blank=True)
     date_featured = models.DateTimeField(_("featured date"), null=True, blank=True)
-    publish = models.BooleanField(_("publish"), default=False)
     categories = models.ManyToManyField(
         "djangocms_blog.BlogCategory", verbose_name=_("category"), related_name="blog_posts", blank=True
     )
@@ -263,6 +262,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         ),
         post_text=HTMLField(_("text"), default="", blank=True, configuration="BLOG_POST_TEXT_CKEDITOR"),
         meta={"unique_together": (("language_code", "slug"),)},
+        publish=models.BooleanField(_("publish"), default=True),
     )
     media = PlaceholderField("media", related_name="media")
     content = PlaceholderField("post_content", related_name="post_content")
@@ -335,7 +335,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         """
         Handle some auto configuration during save
         """
-        if self.publish and self.date_published is None:
+        if self.safe_translation_getter('is_publish') and self.date_published is None:
             self.date_published = timezone.now()
         if not self.slug and self.title:
             self.slug = slugify(self.title)
@@ -444,7 +444,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         Checks wether the blog post is *really* published by checking publishing dates too
         """
         return (
-            self.publish
+            self.safe_translation_getter('is_publish')
             and (self.date_published and self.date_published <= timezone.now())
             and (self.date_published_end is None or self.date_published_end > timezone.now())
         )
