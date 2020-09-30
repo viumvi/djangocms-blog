@@ -96,6 +96,7 @@ class BlogCategory(BlogMetaMixin, TranslatableModel):
     date_created = models.DateTimeField(_("created at"), auto_now_add=True)
     date_modified = models.DateTimeField(_("modified at"), auto_now=True)
     app_config = AppHookConfigField(BlogConfig, null=True, verbose_name=_("app. config"))
+    order = models.PositiveIntegerField(default=0)
 
     translations = TranslatedFields(
         name=models.CharField(_("name"), max_length=752),
@@ -131,6 +132,7 @@ class BlogCategory(BlogMetaMixin, TranslatableModel):
     class Meta:
         verbose_name = _("blog category")
         verbose_name_plural = _("blog categories")
+        ordering = ['order']
 
     def descendants(self):
         children = []
@@ -209,29 +211,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
     categories = models.ManyToManyField(
         "djangocms_blog.BlogCategory", verbose_name=_("category"), related_name="blog_posts", blank=True
     )
-    main_image = FilerImageField(
-        verbose_name=_("main image"),
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="djangocms_blog_post_image",
-    )
-    main_image_thumbnail = models.ForeignKey(
-        thumbnail_model,
-        verbose_name=_("main image thumbnail"),
-        related_name="djangocms_blog_post_thumbnail",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-    )
-    main_image_full = models.ForeignKey(
-        thumbnail_model,
-        verbose_name=_("main image full"),
-        related_name="djangocms_blog_post_full",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-    )
+
     enable_comments = models.BooleanField(
         verbose_name=_("enable comments on post"), default=get_setting("ENABLE_COMMENTS")
     )
@@ -252,6 +232,29 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         slug=models.SlugField(_("slug"), max_length=752, blank=True, db_index=True, allow_unicode=True),
         subtitle=models.CharField(verbose_name=_("subtitle"), max_length=767, blank=True, default=""),
         abstract=HTMLField(_("abstract"), blank=True, default="", configuration="BLOG_ABSTRACT_CKEDITOR"),
+        main_image = FilerImageField(
+            verbose_name=_("main image"),
+            blank=True,
+            null=True,
+            on_delete=models.SET_NULL,
+            related_name="djangocms_blog_post_image",
+        ),
+        main_image_thumbnail = models.ForeignKey(
+            thumbnail_model,
+            verbose_name=_("main image thumbnail"),
+            related_name="djangocms_blog_post_thumbnail",
+            on_delete=models.SET_NULL,
+            blank=True,
+            null=True,
+        ),
+        main_image_full = models.ForeignKey(
+            thumbnail_model,
+            verbose_name=_("main image full"),
+            related_name="djangocms_blog_post_full",
+            on_delete=models.SET_NULL,
+            blank=True,
+            null=True,
+        ),
         meta_description=models.TextField(verbose_name=_("post meta description"), blank=True, default=""),
         meta_keywords=models.TextField(verbose_name=_("post meta keywords"), blank=True, default=""),
         meta_title=models.CharField(
@@ -263,6 +266,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         ),
         post_text=HTMLField(_("text"), default="", blank=True, configuration="BLOG_POST_TEXT_CKEDITOR"),
         meta={"unique_together": (("language_code", "slug"),)},
+        is_publish=models.BooleanField(_('publish'), default=True),
     )
     media = PlaceholderField("media", related_name="media")
     content = PlaceholderField("post_content", related_name="post_content")
@@ -335,7 +339,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         """
         Handle some auto configuration during save
         """
-        if self.publish and self.date_published is None:
+        if self.safe_translation_getter("is_publish") and self.date_published is None:
             self.date_published = timezone.now()
         if not self.slug and self.title:
             self.slug = slugify(self.title)
@@ -444,7 +448,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         Checks wether the blog post is *really* published by checking publishing dates too
         """
         return (
-            self.publish
+            self.safe_translation_getter("is_publish")
             and (self.date_published and self.date_published <= timezone.now())
             and (self.date_published_end is None or self.date_published_end > timezone.now())
         )

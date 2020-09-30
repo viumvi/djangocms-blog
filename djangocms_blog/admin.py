@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from adminsortable2.admin import SortableAdminMixin
 from aldryn_apphooks_config.admin import BaseAppHookConfig, ModelAppHookConfig
 from cms.admin.placeholderadmin import FrontendEditableAdminMixin, PlaceholderAdminMixin
 from cms.models import CMSPlugin, ValidationError
@@ -88,7 +89,7 @@ class SiteListFilter(admin.SimpleListFilter):
             raise admin.options.IncorrectLookupParameters(e)
 
 
-class BlogCategoryAdmin(ModelAppHookConfig, TranslatableAdmin):
+class BlogCategoryAdmin(SortableAdminMixin, ModelAppHookConfig, TranslatableAdmin):
     form = CategoryAdminForm
     list_display = [
         "name",
@@ -125,7 +126,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
     if apps.is_installed("djangocms_blog.liveblog"):
         actions += ["enable_liveblog", "disable_liveblog"]
     _fieldsets = [
-        (None, {"fields": ["title", "subtitle", "slug", "publish", ["categories", "app_config"]]}),
+        (None, {"fields": ["title", "subtitle", "slug", "is_publish", ["categories", "app_config"]]}),
         (None, {"fields": [[]]}),
         (
             _("Info"),
@@ -141,6 +142,51 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
         (_("SEO"), {"fields": [["meta_description", "meta_title", "meta_keywords"]], "classes": ("collapse",)}),
     ]
 
+    def get_fieldsets(self, request, obj=None):
+        """
+        Customize the fieldsets according to the app settings
+
+        :param request: request
+        :param obj: post
+        :return: fieldsets configuration
+        """
+        app_config_default = self._app_config_select(request, obj)
+        if app_config_default is None and request.method == "GET":
+            return super().get_fieldsets(request, obj)
+        if not obj:
+            config = app_config_default
+        else:
+            config = obj.app_config
+
+        fsets = deepcopy(self._fieldsets)
+        related_posts = []
+        if config:
+            abstract = bool(config.use_abstract)
+            placeholder = bool(config.use_placeholder)
+            related = bool(config.use_related)
+        else:
+            abstract = get_setting("USE_ABSTRACT")
+            placeholder = get_setting("USE_PLACEHOLDER")
+            related = get_setting("USE_RELATED")
+        if related:
+            related_posts = self._get_available_posts(config)
+        if abstract:
+            fsets[0][1]["fields"].append("abstract")
+        if not placeholder:
+            fsets[0][1]["fields"].append("post_text")
+        if get_setting("MULTISITE") and not self.has_restricted_sites(request):
+            fsets[1][1]["fields"][0].append("sites")
+        if request.user.is_superuser:
+            fsets[1][1]["fields"][0].append("author")
+        if apps.is_installed("djangocms_blog.liveblog"):
+            fsets[2][1]["fields"][2].append("enable_liveblog")
+        filter_function = get_setting("ADMIN_POST_FIELDSET_FILTER")
+        if related_posts:
+            fsets[1][1]["fields"][0].append("related")
+        if callable(filter_function):
+            fsets = filter_function(fsets, request, obj=obj)
+        return fsets
+
     app_config_values = {"default_published": "publish"}
     _sites = None
 
@@ -151,26 +197,34 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
             saved as date_published.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        cnt1 = queryset.filter(date_published__isnull=True, publish=False,).update(
-            date_published=timezone.now(), publish=True
-        )
-        cnt2 = queryset.filter(date_published__isnull=False, publish=False,).update(publish=True)
+        posts = queryset.filter(translations__is_publish=False)
+        for post in posts.all():
+            if not post.date_published:
+                post.date_published = timezone.now()
+                post.save()
+            post.translations.all().update(is_publish=True)
+
         messages.add_message(
             request,
             messages.INFO,
-            __("%(updates)d entry published.", "%(updates)d entries published.", cnt1 + cnt2)
-            % {"updates": cnt1 + cnt2},
+            __("%(posts)d entry published.", "%(posts)d entries published.", queryset.count())
+            % {"posts": queryset.count()},
         )
 
     def make_unpublished(self, request, queryset):
         """ Bulk action to mark selected posts as UNpublished.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(publish=True).update(publish=False)
+        posts = queryset.filter(translations__is_publish=True)
+        for post in posts.all():
+            post.translations.all().update(is_publish=False)
+
         messages.add_message(
             request,
             messages.INFO,
-            __("%(updates)d entry unpublished.", "%(updates)d entries unpublished.", updates) % {"updates": updates},
+            __("%(posts)d entry unpublished.", "%(posts)d entries unpublished.", queryset.count()) % {
+                "posts": queryset.count()
+            },
         )
 
     def enable_comments(self, request, queryset):
@@ -331,51 +385,6 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
         if config:
             return self.model.objects.namespace(config.namespace).active_translations().exists()
         return []
-
-    def get_fieldsets(self, request, obj=None):
-        """
-        Customize the fieldsets according to the app settings
-
-        :param request: request
-        :param obj: post
-        :return: fieldsets configuration
-        """
-        app_config_default = self._app_config_select(request, obj)
-        if app_config_default is None and request.method == "GET":
-            return super().get_fieldsets(request, obj)
-        if not obj:
-            config = app_config_default
-        else:
-            config = obj.app_config
-
-        fsets = deepcopy(self._fieldsets)
-        related_posts = []
-        if config:
-            abstract = bool(config.use_abstract)
-            placeholder = bool(config.use_placeholder)
-            related = bool(config.use_related)
-        else:
-            abstract = get_setting("USE_ABSTRACT")
-            placeholder = get_setting("USE_PLACEHOLDER")
-            related = get_setting("USE_RELATED")
-        if related:
-            related_posts = self._get_available_posts(config)
-        if abstract:
-            fsets[0][1]["fields"].append("abstract")
-        if not placeholder:
-            fsets[0][1]["fields"].append("post_text")
-        if get_setting("MULTISITE") and not self.has_restricted_sites(request):
-            fsets[1][1]["fields"][0].append("sites")
-        if request.user.is_superuser:
-            fsets[1][1]["fields"][0].append("author")
-        if apps.is_installed("djangocms_blog.liveblog"):
-            fsets[2][1]["fields"][2].append("enable_liveblog")
-        filter_function = get_setting("ADMIN_POST_FIELDSET_FILTER")
-        if related_posts:
-            fsets[1][1]["fields"][0].append("related")
-        if callable(filter_function):
-            fsets = filter_function(fsets, request, obj=obj)
-        return fsets
 
     def get_prepopulated_fields(self, request, obj=None):
         return {"slug": ("title",)}
