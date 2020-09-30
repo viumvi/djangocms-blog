@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.db import models
 from django.utils.timezone import now
+from django.utils.translation import get_language
 
 
 class TaggedFilterItem:
@@ -84,7 +85,8 @@ class GenericDateQuerySet(AppHookConfigTranslatableQueryset):
     start_date_field = "date_published"
     fallback_date_field = "date_modified"
     end_date_field = "date_published_end"
-    publish_field = "publish"
+    publish_field = "translations__is_publish"
+    language_code = "translations__language_code"
 
     def on_site(self, site=None):
         if not site:
@@ -108,7 +110,11 @@ class GenericDateQuerySet(AppHookConfigTranslatableQueryset):
                 **{"%s__isnull" % self.end_date_field: True}
             )
             queryset = queryset.filter(qfilter)
-        return queryset.filter(**{self.publish_field: True})
+
+        return queryset.filter(**{
+            self.publish_field: True,
+            self.language_code: get_language()
+        })
 
     def archived(self, current_site=True):
         if current_site:
@@ -118,13 +124,22 @@ class GenericDateQuerySet(AppHookConfigTranslatableQueryset):
         if self.end_date_field:
             qfilter = models.Q(**{"%s__lte" % self.end_date_field: now()})
             queryset = queryset.filter(qfilter)
-        return queryset.filter(**{self.publish_field: True})
+        return queryset.filter(**{
+            self.publish_field: True,
+            self.language_code: get_language()
+        })
 
     def available(self, current_site=True):
         if current_site:
-            return self.on_site().filter(**{self.publish_field: True})
+            return self.on_site().filter(**{
+                self.publish_field: True,
+                self.language_code: get_language()
+            })
         else:
-            return self.filter(**{self.publish_field: True})
+            return self.filter(**{
+                self.publish_field: True,
+                self.language_code: get_language()
+            })
 
     def filter_by_language(self, language, current_site=True):
         if current_site:
