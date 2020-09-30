@@ -187,7 +187,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
             fsets = filter_function(fsets, request, obj=obj)
         return fsets
 
-    app_config_values = {"default_published": "publish"}
+    app_config_values = {"default_published": "translations__is_publish"}
     _sites = None
 
     # Bulk actions for post admin
@@ -284,7 +284,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
     disable_liveblog.short_description = _("Disable liveblog for selection ")
 
     def get_list_filter(self, request):
-        filters = ["app_config", "publish", "date_published"]
+        filters = ["app_config", "translations__is_publish", "date_published"]
         if get_setting("MULTISITE"):
             filters.append(SiteListFilter)
         try:
@@ -299,6 +299,9 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
             except ImportError:
                 pass
         return filters
+
+    def lookup_allowed(self, lookup, value):
+        return lookup.startswith('translations') or super().lookup_allowed(lookup, value)
 
     def get_urls(self):
         """
