@@ -126,7 +126,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
     if apps.is_installed("djangocms_blog.liveblog"):
         actions += ["enable_liveblog", "disable_liveblog"]
     _fieldsets = [
-        (None, {"fields": ["title", "subtitle", "slug", "publish", ["categories", "app_config"]]}),
+        (None, {"fields": ["title", "subtitle", "slug", "is_publish", ["categories", "app_config"]]}),
         (None, {"fields": [[]]}),
         (
             _("Info"),
@@ -197,26 +197,34 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
             saved as date_published.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        cnt1 = queryset.filter(date_published__isnull=True, publish=False,).update(
-            date_published=timezone.now(), publish=True
-        )
-        cnt2 = queryset.filter(date_published__isnull=False, publish=False,).update(publish=True)
+        posts = queryset.filter(translations__is_publish=False)
+        for post in posts.all():
+            if not post.date_published:
+                post.date_published = timezone.now()
+                post.save()
+            post.translations.all().update(is_publish=True)
+
         messages.add_message(
             request,
             messages.INFO,
-            __("%(updates)d entry published.", "%(updates)d entries published.", cnt1 + cnt2)
-            % {"updates": cnt1 + cnt2},
+            __("%(posts)d entry published.", "%(posts)d entries published.", queryset.count())
+            % {"posts": queryset.count()},
         )
 
     def make_unpublished(self, request, queryset):
         """ Bulk action to mark selected posts as UNpublished.
             queryset must not be empty (ensured by DjangoCMS).
         """
-        updates = queryset.filter(publish=True).update(publish=False)
+        posts = queryset.filter(translations__is_publish=True)
+        for post in posts.all():
+            post.translations.all().update(is_publish=False)
+
         messages.add_message(
             request,
             messages.INFO,
-            __("%(updates)d entry unpublished.", "%(updates)d entries unpublished.", updates) % {"updates": updates},
+            __("%(posts)d entry unpublished.", "%(posts)d entries unpublished.", queryset.count()) % {
+                "posts": queryset.count()
+            },
         )
 
     def enable_comments(self, request, queryset):
