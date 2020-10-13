@@ -340,7 +340,7 @@ class PostAdmin(PlaceholderAdminMixin, FrontendEditableAdminMixin, ModelAppHookC
         language = get_language_from_request(request, check_path=True)
         try:
             post = Post.objects.get(pk=int(pk))
-            post.publish = True
+            post.is_publish = True
             post.save()
             return HttpResponseRedirect(post.get_absolute_url(language))
         except Exception:
