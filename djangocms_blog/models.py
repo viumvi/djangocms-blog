@@ -265,7 +265,7 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
         ),
         post_text=HTMLField(_("text"), default="", blank=True, configuration="BLOG_POST_TEXT_CKEDITOR"),
         meta={"unique_together": (("language_code", "slug"),)},
-        is_publish=models.BooleanField(_('publish'), default=True),
+        is_publish=models.BooleanField(_('publish'), default=False),
     )
     media = PlaceholderField("media", related_name="media")
     content = PlaceholderField("post_content", related_name="post_content")
