@@ -21,7 +21,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.encoding import force_text
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from django.utils.functional import cached_property
 from django.utils.html import escape
 from django.utils.html import strip_tags
