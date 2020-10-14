@@ -19,10 +19,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_bytes
-from django.utils.encoding import force_text
-# from django.utils.encoding import python_2_unicode_compatible
-from six import python_2_unicode_compatible
+from django.utils.encoding import force_bytes, force_text
 from django.utils.functional import cached_property
 from django.utils.html import escape
 from django.utils.html import strip_tags
@@ -37,6 +34,7 @@ from meta.models import ModelMeta
 from parler.models import TranslatableModel
 from parler.models import TranslatedFields
 from parler.utils.context import switch_language
+from six import python_2_unicode_compatible
 from sortedm2m.fields import SortedManyToManyField
 from taggit_autosuggest.managers import TaggableManager
 
@@ -424,14 +422,14 @@ class PostAbstract(models.Model, KnockerModel, BlogMetaMixin):
                 (self.date_published_end is None or self.date_published_end > timezone.now())
                 )
 
-    def should_knock(self, created=False):
+    def should_knock(self, signal_type, created=False):
         """
         Returns whether to emit knocks according to the post state
         """
         new = (self.app_config.send_knock_create and self.is_published and
                self.date_published == self.date_modified)
         updated = self.app_config.send_knock_update and self.is_published
-        return new or updated
+        return (new or updated) and signal_type in ('post_save', 'post_delete')
 
     def get_cache_key(self, language, prefix):
         return 'djangocms-blog:{2}:{0}:{1}'.format(language, self.guid, prefix)
