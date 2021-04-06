@@ -3,14 +3,14 @@ import hashlib
 from aldryn_apphooks_config.fields import AppHookConfigField
 from aldryn_apphooks_config.managers.parler import AppHookConfigTranslatableManager
 from cms.models import CMSPlugin, PlaceholderField
-from django.conf import settings as dj_settings
+from django.conf import settings as dj_settings, settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
 from django.db import models
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.functional import cached_property
@@ -471,6 +471,23 @@ class Post(KnockerModel, BlogMetaMixin, TranslatableModel):
             apphook=self.app_config.namespace,
             post=self.safe_translation_getter("slug", any_language=True),
         )
+
+    def url(self) -> str:
+        try:
+            return self.get_absolute_url(lang=self.language_code)
+        except NoReverseMatch:
+            try:
+                return self.get_absolute_url()
+            except NoReverseMatch:
+                return ''
+
+    def search_index_description(self) -> str:
+        from djangocms_algolia.utils.render import render_text_from_placeholder
+
+        content = render_text_from_placeholder(self.content, lang_code=self.language_code)
+        if settings.ALGOLIA_SEARCH_INDEX_TEXT_LIMIT:
+            return content[: settings.ALGOLIA_SEARCH_INDEX_TEXT_LIMIT]
+        return content
 
 
 class BasePostPlugin(CMSPlugin):
